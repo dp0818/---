@@ -21,8 +21,6 @@ Page({
     selectedRoomIcon: '🛋️',
     pendingDeviceId: '',  // 待绑定的设备ID
     statusError: '',      // 状态检测错误信息
-    statusDebug: '',      // 状态调试信息（原始返回）
-    showStatusDebug: false, // 是否显示调试面板
     roomOptions: [
       { value: 'living_room', label: '客厅', icon: '🛋️' },
       { value: 'kitchen', label: '厨房', icon: '🍳' },
@@ -144,31 +142,12 @@ Page({
         }
       }
 
-      // 构建调试信息
-      let debugLines = []
-      if (!statusRes || !statusRes.data) {
-        debugLines.push('❌ /api/status 无返回')
-      } else {
-        debugLines.push('📦 online=' + (statusRes.data.online || 0) + ' offline=' + (statusRes.data.offline || 0) + ' total=' + (statusRes.data.total || 0))
-        const sims = statusRes.data.simulators || {}
-        const simKeys = Object.keys(sims)
-        debugLines.push('🏃 模拟器数: ' + simKeys.length)
-        const runningSims = simKeys.filter(k => sims[k].status === 'running')
-        debugLines.push('✅ 运行中: [' + runningSims.join(', ') + ']')
-        debugLines.push('--- 匹配结果 ---')
-        deviceList.forEach(d => {
-          debugLines.push((d.status === 1 ? '✅' : '❌') + ' ' + d.device_id)
-        })
-      }
-
       this.setData({
         deviceList,
         favoriteList: enrichedFavs,
         favDeviceIds: favIds,
         roomIcons,
-        roomNames,
-        statusDebug: debugLines.join('\n'),
-        showStatusDebug: true
+        roomNames
       })
     } catch (e) {
       // 错误已在 request 中统一处理
@@ -288,9 +267,5 @@ Page({
     wx.navigateTo({
       url: `/pages/device-detail/device-detail?deviceId=${deviceId}&deviceName=${deviceName || ''}`
     })
-  },
-
-  toggleStatusDebug() {
-    this.setData({ showStatusDebug: false })
   }
 })
