@@ -1,28 +1,191 @@
-<view class="map-container">
-  <map id="deviceMap" class="device-map"
-    latitude="{{centerLat}}" longitude="{{centerLng}}"
-    scale="{{scale}}" markers="{{markers}}" show-location="{{true}}"
-    bindmarkertap="onMarkerTap">
-  </map>
-
-  <!-- 空状态 -->
-  <view wx:if="{{deviceList.length === 0}}" class="empty-overlay">
-    <view class="empty-icon">🗺️</view>
-    <view class="empty-text">暂无绑定设备</view>
+<view class="home-3d-container">
+  <view class="map3d-header">
+    <view class="map3d-title-group">
+      <view class="map3d-title">家庭空气质量</view>
+      <view class="map3d-subtitle">{{onlineCount}}/{{deviceList.length}} 设备在线 · 实时监测</view>
+    </view>
+    <view class="map3d-refresh" bindtap="loadDeviceData">
+      <view class="refresh-icon {{refreshing ? 'spin' : ''}}">↻</view>
+    </view>
   </view>
 
-  <!-- 底部设备列表 -->
-  <scroll-view wx:if="{{deviceList.length > 0}}" scroll-x class="bottom-bar">
-    <view wx:for="{{deviceList}}" wx:key="device_id"
-      class="bar-item {{item.device_id === selectedDeviceId ? 'bar-item-active' : ''}}"
-      bindtap="onBarItemTap" data-index="{{index}}">
-      <view class="bar-item-inner">
-        <view class="bar-name">{{item.device_name || item.device_id}}</view>
-        <view class="bar-bottom">
-          <view class="bar-aqi {{item.aqiClass}}">{{item.latestAqi || '--'}}</view>
-          <view class="bar-level {{item.aqiClass}}">{{item.levelText || '未知'}}</view>
+  <view class="rooms-grid-wrapper">
+
+    <view class="rooms-grid {{zoomedRoom ? 'zoomed' : ''}}"
+      style="transform: translateX({{panX}}rpx) translateY({{panY}}rpx) scale({{zoomScale}});
+             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+
+      <!-- 客厅 -->
+      <view class="room-card room-card-large {{selectedRoom === 'living_room' ? 'active' : ''}} {{livingRoom.aqiClass}}"
+        bindtap="onRoomTap" data-room="living_room" data-index="0"
+        style="--room-color: {{livingRoom.glowColor || 'transparent'}};">
+        <view class="card-icon">🛋️</view>
+        <view class="card-name">客厅</view>
+        <view class="card-aqi" wx:if="{{livingRoom.aqi > 0}}">
+          <text class="aqi-num">{{livingRoom.aqi}}</text>
+          <text class="aqi-unit">AQI</text>
         </view>
+        <view class="card-devices">{{livingRoom.devices.length}}设备</view>
+      </view>
+
+      <!-- 卧室 -->
+      <view class="room-card {{selectedRoom === 'bedroom' ? 'active' : ''}} {{bedroom.aqiClass}}"
+        bindtap="onRoomTap" data-room="bedroom" data-index="1"
+        style="--room-color: {{bedroom.glowColor || 'transparent'}};">
+        <view class="card-icon">🛏️</view>
+        <view class="card-name">卧室</view>
+        <view class="card-aqi" wx:if="{{bedroom.aqi > 0}}">
+          <text class="aqi-num">{{bedroom.aqi}}</text>
+          <text class="aqi-unit">AQI</text>
+        </view>
+        <view class="card-devices">{{bedroom.devices.length}}设备</view>
+      </view>
+
+      <!-- 书房 -->
+      <view class="room-card {{selectedRoom === 'study' ? 'active' : ''}} {{study.aqiClass}}"
+        bindtap="onRoomTap" data-room="study" data-index="2"
+        style="--room-color: {{study.glowColor || 'transparent'}};">
+        <view class="card-icon">📚</view>
+        <view class="card-name">书房</view>
+        <view class="card-aqi" wx:if="{{study.aqi > 0}}">
+          <text class="aqi-num">{{study.aqi}}</text>
+          <text class="aqi-unit">AQI</text>
+        </view>
+        <view class="card-devices">{{study.devices.length}}设备</view>
+      </view>
+
+      <!-- 厨房 -->
+      <view class="room-card {{selectedRoom === 'kitchen' ? 'active' : ''}} {{kitchen.aqiClass}}"
+        bindtap="onRoomTap" data-room="kitchen" data-index="3"
+        style="--room-color: {{kitchen.glowColor || 'transparent'}};">
+        <view class="card-icon">🍳</view>
+        <view class="card-name">厨房</view>
+        <view class="card-aqi" wx:if="{{kitchen.aqi > 0}}">
+          <text class="aqi-num">{{kitchen.aqi}}</text>
+          <text class="aqi-unit">AQI</text>
+        </view>
+        <view class="card-devices">{{kitchen.devices.length}}设备</view>
+      </view>
+
+      <!-- 厕所 -->
+      <view class="room-card {{selectedRoom === 'bathroom' ? 'active' : ''}} {{bathroom.aqiClass}}"
+        bindtap="onRoomTap" data-room="bathroom" data-index="4"
+        style="--room-color: {{bathroom.glowColor || 'transparent'}};">
+        <view class="card-icon">🚽</view>
+        <view class="card-name">厕所</view>
+        <view class="card-aqi" wx:if="{{bathroom.aqi > 0}}">
+          <text class="aqi-num">{{bathroom.aqi}}</text>
+          <text class="aqi-unit">AQI</text>
+        </view>
+        <view class="card-devices">{{bathroom.devices.length}}设备</view>
+      </view>
+
+      <!-- 阳台 -->
+      <view class="room-card {{selectedRoom === 'balcony' ? 'active' : ''}} {{balcony.aqiClass}}"
+        bindtap="onRoomTap" data-room="balcony" data-index="5"
+        style="--room-color: {{balcony.glowColor || 'transparent'}};">
+        <view class="card-icon">🌿</view>
+        <view class="card-name">阳台</view>
+        <view class="card-aqi" wx:if="{{balcony.aqi > 0}}">
+          <text class="aqi-num">{{balcony.aqi}}</text>
+          <text class="aqi-unit">AQI</text>
+        </view>
+        <view class="card-devices">{{balcony.devices.length}}设备</view>
+      </view>
+
+      <!-- 走廊 -->
+      <view class="room-card {{selectedRoom === 'hallway' ? 'active' : ''}}"
+        bindtap="onRoomTap" data-room="hallway" data-index="6">
+        <view class="card-icon">🚪</view>
+        <view class="card-name">走廊</view>
+        <view class="card-devices">{{hallway.devices.length}}设备</view>
+      </view>
+
+    </view>
+  </view>
+
+  <!-- 房间详情面板 -->
+  <view class="room-detail-panel {{selectedRoom ? 'panel-open' : ''}}">
+    <view class="panel-drag-bar" bindtap="closeRoomPanel">
+      <view class="drag-indicator"></view>
+    </view>
+
+    <view class="panel-header" wx:if="{{selectedRoom}}">
+      <view class="panel-room-icon">{{roomIcons[selectedRoom]}}</view>
+      <view class="panel-room-info">
+        <view class="panel-room-name">{{roomNames[selectedRoom]}}</view>
+        <view class="panel-room-count">{{selectedRoomDevices.length}} 个设备</view>
+      </view>
+      <view class="panel-room-aqi {{roomDataMap[selectedRoom].aqiClass}}">
+        <view class="panel-aqi-num">{{roomDataMap[selectedRoom].aqi || '--'}}</view>
+        <view class="panel-aqi-text">平均 AQI</view>
       </view>
     </view>
-  </scroll-view>
+
+    <scroll-view scroll-y class="panel-device-list" wx:if="{{selectedRoomDevices.length > 0}}">
+      <view wx:for="{{selectedRoomDevices}}" wx:key="device_id" class="panel-device-card"
+        bindtap="goDeviceDetail" data-device-id="{{item.device_id}}" data-device-name="{{item.device_name}}">
+        <view class="device-card-glow {{item.aqiClass}}"></view>
+        <view class="device-card-content">
+          <view class="device-card-left">
+            <view class="device-card-icon-wrap">
+              <view class="device-card-icon">📡</view>
+              <view class="device-status-ring {{item.status === 1 || item.status === 'online' ? 'online' : 'offline'}}"></view>
+            </view>
+            <view class="device-card-info">
+              <view class="device-card-name">{{item.device_name || item.device_id}}</view>
+              <view class="device-card-meta">
+                <text class="meta-time">{{item.sampleTime || '刚刚'}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="device-card-right">
+            <view class="aqi-ring {{item.aqiClass}}">
+              <view class="aqi-ring-value">{{item.latestAqi || '--'}}</view>
+            </view>
+            <view class="aqi-ring-label {{item.aqiClass}}">{{item.levelText || '未知'}}</view>
+          </view>
+        </view>
+
+        <view class="detail-metrics">
+          <view class="metric-item">
+            <view class="metric-dot" style="background: #4CAF50;"></view>
+            <view class="metric-label">PM2.5</view>
+            <view class="metric-value">{{item.pm2_5 || '--'}}</view>
+            <view class="metric-unit">μg/m³</view>
+          </view>
+          <view class="metric-item">
+            <view class="metric-dot" style="background: #2196F3;"></view>
+            <view class="metric-label">NO₂</view>
+            <view class="metric-value">{{item.no2 || '--'}}</view>
+            <view class="metric-unit">mg/m³</view>
+          </view>
+          <view class="metric-item">
+            <view class="metric-dot" style="background: #FF9800;"></view>
+            <view class="metric-label">SO₂</view>
+            <view class="metric-value">{{item.so2 || '--'}}</view>
+            <view class="metric-unit">mg/m³</view>
+          </view>
+          <view class="metric-item">
+            <view class="metric-dot" style="background: #9C27B0;"></view>
+            <view class="metric-label">O₃</view>
+            <view class="metric-value">{{item.o3 || '--'}}</view>
+            <view class="metric-unit">mg/m³</view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:else class="panel-empty">
+      <view class="panel-empty-icon">🏠</view>
+      <view class="panel-empty-text">该房间暂无设备</view>
+      <view class="panel-empty-hint">去设备页绑定设备并选择位置</view>
+    </view>
+  </view>
+
+  <view wx:if="{{deviceList.length === 0}}" class="empty-overlay">
+    <view class="empty-icon">🏠</view>
+    <view class="empty-text">暂无绑定设备</view>
+    <view class="empty-hint">请先绑定空气质量检测设备</view>
+  </view>
 </view>

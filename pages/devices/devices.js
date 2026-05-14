@@ -14,8 +14,34 @@ Page({
     favoriteList: [],   // 收藏的设备
     favDeviceIds: new Set(),  // 收藏设备ID集合，用于快速判断
     showDialog: false,  // 手动输入弹窗
-    inputDeviceId: ''   // 输入的设备ID
+    inputDeviceId: '',   // 输入的设备ID
+    showRoomPicker: false, // 房间选择弹窗
+    selectedRoom: 'living_room', // 默认客厅
+    selectedRoomLabel: '客厅', // 当前选中房间的显示标签
+    selectedRoomIcon: '🛋️',
+    pendingDeviceId: '',  // 待绑定的设备ID
+    statusError: '',      // 状态检测错误信息
+    statusDebug: '',      // 状态调试信息（原始返回）
+    showStatusDebug: false, // 是否显示调试面板
+    roomOptions: [
+      { value: 'living_room', label: '客厅', icon: '🛋️' },
+      { value: 'kitchen', label: '厨房', icon: '🍳' },
+      { value: 'bedroom', label: '卧室', icon: '🛏️' },
+      { value: 'bathroom', label: '厕所', icon: '🚿' },
+      { value: 'balcony', label: '阳台', icon: '🌿' },
+      { value: 'study', label: '书房', icon: '📚' }
+    ]
   },
+
+  // 房间选项（保留实例属性供JS内部使用）
+  _roomOptions: [
+    { value: 'living_room', label: '客厅', icon: '🛋️' },
+    { value: 'kitchen', label: '厨房', icon: '🍳' },
+    { value: 'bedroom', label: '卧室', icon: '🛏️' },
+    { value: 'bathroom', label: '厕所', icon: '🚿' },
+    { value: 'balcony', label: '阳台', icon: '🌿' },
+    { value: 'study', label: '书房', icon: '📚' }
+  ],
 
   onShow() {
     this.loadAll()
@@ -36,15 +62,76 @@ Page({
     wx.showLoading({ title: '加载中...', mask: true })
 
     try {
-      // 并行请求设备列表和收藏列表
+      let statusRes = null
+      try {
+        statusRes = await api.getSimulatorStatus()
+        console.log('[Status] /api/status 返回:', JSON.stringify(statusRes))
+      } catch (e) {
+        console.warn('[Status] 获取模拟器状态失败:', e)
+        const errMsg = (e && e.errMsg) || (e && e.message) || String(e)
+        this.setData({ statusError: '状态检测失败: ' + errMsg })
+      }
+
       const [deviceRes, favRes] = await Promise.all([
         api.getDeviceList(open_id),
         api.getFavoriteList(open_id)
       ])
 
-      const deviceList = deviceRes.data || []
+      let deviceList = deviceRes.data || []
       const favoriteList = favRes.data || []
       const favIds = new Set(favoriteList.map(f => f.device_id))
+
+      const simStatusMap = {}
+      if (statusRes && statusRes.data && statusRes.data.simulators) {
+        Object.keys(statusRes.data.simulators).forEach(key => {
+          const sim = statusRes.data.simulators[key]
+          simStatusMap[key] = sim.status || 'offline'
+        })
+      }
+
+      // 为设备列表计算AQI等级和文字
+      const roomIcons = {
+        living_room: '🛋️',
+        kitchen: '🍳',
+        bedroom: '🛏️',
+        bathroom: '🚿',
+        balcony: '🌿',
+        study: '📚'
+      }
+      const roomNames = {
+        living_room: '客厅',
+        kitchen: '厨房',
+        bedroom: '卧室',
+        bathroom: '厕所',
+        balcony: '阳台',
+        study: '书房'
+      }
+      deviceList = deviceList.map(d => {
+        const aqi = d.latest_aqi || d.latestAqi || 0
+        let aqiClass = 'aqi-excellent'
+        let levelText = '优'
+        if (aqi > 300) { aqiClass = 'aqi-severe'; levelText = '严重' }
+        else if (aqi > 200) { aqiClass = 'aqi-severe'; levelText = '重度' }
+        else if (aqi > 150) { aqiClass = 'aqi-moderate'; levelText = '中度' }
+        else if (aqi > 100) { aqiClass = 'aqi-mild'; levelText = '轻度' }
+        else if (aqi > 50) { aqiClass = 'aqi-good'; levelText = '良' }
+
+        let status = d.status || 0
+        const did = d.device_id || ''
+        if (Object.keys(simStatusMap).length > 0) {
+          const didLower = did.toLowerCase()
+          for (const skey of Object.keys(simStatusMap)) {
+            const sLower = skey.toLowerCase()
+            if (did === skey || didLower === sLower ||
+                sLower.includes(didLower) || didLower.includes(sLower)) {
+              status = (simStatusMap[skey] === 'running') ? 1 : 0
+              break
+            }
+          }
+        }
+
+        return { ...d, aqiClass, levelText, latestAqi: aqi, status, roomIcons, roomNames }
+      })
 
       // 收藏设备取完整信息（从全部设备列表中匹配）
       const enrichedFavs = []
@@ -53,14 +140,35 @@ Page({
         if (device) {
           enrichedFavs.push({ ...device, isFavorited: true })
         } else {
-          enrichedFavs.push({ ...fav, device_name: fav.location_name || fav.device_id, isFavorited: true })
+          enrichedFavs.push({ ...fav, device_name: fav.location_name || fav.device_id, isFavorited: true, aqiClass: 'aqi-excellent', levelText: '未知', latestAqi: 0 })
         }
+      }
+
+      // 构建调试信息
+      let debugLines = []
+      if (!statusRes || !statusRes.data) {
+        debugLines.push('❌ /api/status 无返回')
+      } else {
+        debugLines.push('📦 online=' + (statusRes.data.online || 0) + ' offline=' + (statusRes.data.offline || 0) + ' total=' + (statusRes.data.total || 0))
+        const sims = statusRes.data.simulators || {}
+        const simKeys = Object.keys(sims)
+        debugLines.push('🏃 模拟器数: ' + simKeys.length)
+        const runningSims = simKeys.filter(k => sims[k].status === 'running')
+        debugLines.push('✅ 运行中: [' + runningSims.join(', ') + ']')
+        debugLines.push('--- 匹配结果 ---')
+        deviceList.forEach(d => {
+          debugLines.push((d.status === 1 ? '✅' : '❌') + ' ' + d.device_id)
+        })
       }
 
       this.setData({
         deviceList,
         favoriteList: enrichedFavs,
-        favDeviceIds: favIds
+        favDeviceIds: favIds,
+        roomIcons,
+        roomNames,
+        statusDebug: debugLines.join('\n'),
+        showStatusDebug: true
       })
     } catch (e) {
       // 错误已在 request 中统一处理
@@ -82,9 +190,11 @@ Page({
           wx.showToast({ title: '未识别到设备ID', icon: 'none' })
           return
         }
-        api.bindDevice(open_id, deviceId).then(() => {
-          wx.showToast({ title: '绑定成功', icon: 'success' })
-          this.loadAll()
+        this.setData({
+          pendingDeviceId: deviceId,
+          showRoomPicker: true,
+          selectedRoom: 'living_room',
+          selectedRoomLabel: '客厅'
         })
       }
     })
@@ -112,16 +222,47 @@ Page({
       wx.showToast({ title: '请输入设备ID', icon: 'none' })
       return
     }
+    this.setData({
+      showDialog: false,
+      pendingDeviceId: deviceId,
+      showRoomPicker: true,
+      selectedRoom: 'living_room',
+      selectedRoomLabel: '客厅'
+    })
+  },
+
+  // ==================== 房间选择 ====================
+
+  onRoomChange(e) {
+    const index = parseInt(e.detail.value)
+    const options = this.data.roomOptions || this._roomOptions
+    const room = options[index].value
+    this.setData({
+      selectedRoom: room,
+      selectedRoomLabel: options[index].label,
+      selectedRoomIcon: options[index].icon
+    })
+  },
+
+  hideRoomPicker() {
+    this.setData({ showRoomPicker: false, pendingDeviceId: '' })
+  },
+
+  confirmRoomBind() {
     const open_id = app.globalData.open_id
+    const deviceId = this.data.pendingDeviceId
+    const room = this.data.selectedRoom
+    if (!deviceId) return
+
     wx.showLoading({ title: '绑定中...', mask: true })
-    api.bindDevice(open_id, deviceId).then(() => {
+    api.bindDevice(open_id, deviceId, room).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '绑定成功', icon: 'success' })
-      this.setData({ showDialog: false, inputDeviceId: '' })
+      this.setData({ showRoomPicker: false, pendingDeviceId: '', inputDeviceId: '' })
       this.loadAll()
     }).catch(() => {
       wx.hideLoading()
-      this.setData({ showDialog: false })
+      this.setData({ showRoomPicker: false, pendingDeviceId: '' })
     })
   },
 
@@ -147,5 +288,9 @@ Page({
     wx.navigateTo({
       url: `/pages/device-detail/device-detail?deviceId=${deviceId}&deviceName=${deviceName || ''}`
     })
+  },
+
+  toggleStatusDebug() {
+    this.setData({ showStatusDebug: false })
   }
 })

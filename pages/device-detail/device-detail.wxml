@@ -1,87 +1,147 @@
-<view class="page-container">
-  <!-- 设备头部卡片 -->
-  <view class="detail-header-card">
-    <view class="detail-header-top">
-      <view class="detail-header-left">
-        <view class="detail-device-icon">📡</view>
-        <view>
-          <view class="detail-device-name">{{deviceName}}</view>
-          <view class="detail-device-id">ID: {{deviceId}}</view>
+<view class="detail-container">
+  <!-- 顶部背景 -->
+  <view class="detail-header-bg"></view>
+
+  <!-- 头部卡片 -->
+  <view class="detail-hero-card animate-fade-in">
+    <view class="detail-hero-top">
+      <view class="detail-hero-left">
+        <view class="detail-hero-icon-wrap">
+          <view class="detail-hero-icon">📡</view>
+          <view class="detail-hero-status {{status === 1 ? 'online' : 'offline'}}"></view>
+        </view>
+        <view class="detail-hero-info">
+          <view class="detail-hero-name">{{deviceName || deviceId}}</view>
+          <view class="detail-hero-id">ID: {{deviceId}}</view>
         </view>
       </view>
-      <view class="favorite-btn" bindtap="handleToggleFavorite">
-        <text class="favorite-star {{isFavorite ? 'is-favorited' : ''}}">{{isFavorite ? '⭐' : '☆'}}</text>
-        <text class="favorite-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
+      <view class="detail-fav-btn {{isFavorite ? 'active' : ''}}" bindtap="handleToggleFavorite">
+        <text class="detail-fav-star">{{isFavorite ? '⭐' : '☆'}}</text>
+        <text class="detail-fav-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
       </view>
     </view>
-    <view class="detail-status-row">
-      <view class="status-tag {{status === 1 ? 'status-online' : 'status-offline'}}">
-        <view class="status-dot {{status === 1 ? 'online' : 'offline'}}"></view>
+    <view class="detail-hero-tags">
+      <view class="detail-tag {{status === 1 ? 'tag-online' : 'tag-offline'}}">
+        <view class="tag-dot {{status === 1 ? 'online' : 'offline'}}"></view>
         {{status === 1 ? '在线' : '离线'}}
       </view>
-      <view wx:if="{{isActive}}" class="badge-active">当前活跃</view>
-      <view wx:if="{{battery}}" class="battery-tag">🔋 {{battery}}%</view>
+      <view wx:if="{{isActive}}" class="detail-tag tag-active">当前活跃</view>
+      <view wx:if="{{battery}}" class="detail-tag tag-battery">🔋 {{battery}}%</view>
     </view>
   </view>
 
   <!-- 位置信息 -->
-  <view class="detail-card">
-    <view class="detail-section-title">📍 位置信息</view>
-    <view class="info-grid">
-      <view class="info-item">
-        <view class="info-label">经度</view>
-        <view class="info-value">{{longitude || '未设置'}}</view>
+  <view class="detail-section animate-fade-in" style="animation-delay: 0.05s;">
+    <view class="detail-section-header">
+      <view class="detail-section-line"></view>
+      <text class="detail-section-label">📍 位置信息</text>
+    </view>
+    <view class="detail-card">
+      <view class="detail-grid">
+        <view class="detail-grid-item">
+          <view class="detail-grid-icon">🏠</view>
+          <view class="detail-grid-label">所在房间</view>
+          <view class="detail-grid-value">{{roomLocationLabel || '未设置'}}</view>
+        </view>
+        <view class="detail-grid-item">
+          <view class="detail-grid-icon {{simRunning ? 'icon-online' : 'icon-offline'}}">⚡</view>
+          <view class="detail-grid-label">模拟器</view>
+          <view class="detail-grid-value {{simRunning ? 'text-online' : 'text-offline'}}">{{simStatus || '检测中...'}}</view>
+        </view>
       </view>
-      <view class="info-item">
-        <view class="info-label">纬度</view>
-        <view class="info-value">{{latitude || '未设置'}}</view>
+      <view class="detail-btn-row">
+        <view class="detail-btn detail-btn-default detail-btn-flex" bindtap="handleRefreshStatus">
+          <text class="detail-btn-icon">🔄</text>
+          <text>刷新状态</text>
+        </view>
+        <view class="detail-btn detail-btn-primary detail-btn-flex" bindtap="handleUpdateLocation">
+          <text class="detail-btn-icon">🏠</text>
+          <text>更改房间</text>
+        </view>
       </view>
     </view>
-    <button class="btn-action btn-action-location" bindtap="handleUpdateLocation" loading="{{updatingLocation}}">
-      📍 更新位置
-    </button>
   </view>
 
   <!-- 告警设置 -->
-  <view class="detail-card">
-    <view class="detail-section-title">🔔 告警设置</view>
-    <view class="alert-row">
-      <view class="alert-item">
-        <view class="alert-value">{{pm25Limit}}</view>
-        <view class="alert-unit">PM2.5 上限 (μg/m³)</view>
+  <view class="detail-section animate-fade-in" style="animation-delay: 0.1s;">
+    <view class="detail-section-header">
+      <view class="detail-section-line"></view>
+      <text class="detail-section-label">🔔 告警设置</text>
+    </view>
+    <view class="detail-card">
+      <view class="detail-alert-row">
+        <view class="detail-alert-item">
+          <view class="detail-alert-value">{{pm25Limit}}</view>
+          <view class="detail-alert-unit">PM2.5 上限 (μg/m³)</view>
+        </view>
+        <view class="detail-alert-divider"></view>
+        <view class="detail-alert-item">
+          <view class="detail-alert-value">{{aqiLimit}}</view>
+          <view class="detail-alert-unit">AQI 上限</view>
+        </view>
       </view>
-      <view class="alert-divider"></view>
-      <view class="alert-item">
-        <view class="alert-value">{{aqiLimit}}</view>
-        <view class="alert-unit">AQI 上限</view>
+      <view class="detail-btn detail-btn-default" bindtap="handleModifyAlert">
+        <text class="detail-btn-icon">✏️</text>
+        <text>修改告警阈值</text>
       </view>
     </view>
-    <button class="btn-action btn-action-default" bindtap="handleModifyAlert">
-      ✏️ 修改告警阈值
-    </button>
   </view>
 
   <!-- 操作按钮 -->
-  <view class="action-area">
-    <button class="action-btn action-btn-primary" bindtap="goToData">📊 查看实时数据</button>
-    <button class="action-btn action-btn-danger" bindtap="handleUnbind">🗑️ 解绑此设备</button>
+  <view class="detail-actions animate-fade-in" style="animation-delay: 0.15s;">
+    <view class="detail-btn detail-btn-primary detail-btn-large" bindtap="goToData">
+      <text class="detail-btn-icon">📊</text>
+      <text>查看实时数据</text>
+    </view>
+    <view class="detail-btn detail-btn-danger detail-btn-large" bindtap="handleUnbind">
+      <text class="detail-btn-icon">🗑️</text>
+      <text>解绑此设备</text>
+    </view>
+  </view>
+
+  <view style="height: 60rpx;"></view>
+
+  <!-- 房间选择弹窗 -->
+  <view wx:if="{{showRoomPicker}}" class="detail-modal-overlay" bindtap="hideRoomPicker">
+    <view class="detail-modal-box animate-scale-in" catchtap="noop">
+      <view class="detail-modal-icon-wrap" style="background: linear-gradient(135deg, #2196F3, #42A5F5);">
+        <view class="detail-modal-icon">🏠</view>
+      </view>
+      <view class="detail-modal-title">更改房间位置</view>
+      <view class="detail-modal-subtitle">选择设备所在房间</view>
+      <picker mode="selector" range="{{roomOptions}}" range-key="label" value="0" bindchange="onRoomChange">
+        <view class="room-picker-value">
+          <text class="room-picker-icon">{{selectedRoomIcon}}</text>
+          <text class="room-picker-label">{{selectedRoomLabel}}</text>
+          <text class="room-picker-arrow">›</text>
+        </view>
+      </picker>
+      <view class="detail-modal-btns">
+        <view class="detail-modal-btn detail-modal-btn-cancel" bindtap="hideRoomPicker">取消</view>
+        <view class="detail-modal-btn detail-modal-btn-confirm" bindtap="confirmRoomChange">确认修改</view>
+      </view>
+    </view>
   </view>
 
   <!-- 修改告警弹窗 -->
-  <view wx:if="{{showAlertModal}}" class="modal-mask" bindtap="closeAlertModal">
-    <view class="modal-content" catchtap="noop">
-      <view class="modal-title">修改告警阈值</view>
-      <view class="modal-field">
-        <text class="field-label">PM2.5 上限 (μg/m³)</text>
-        <input class="field-input" type="digit" value="{{pm25Input}}" bindinput="onPm25Input" placeholder="请输入PM2.5上限"/>
+  <view wx:if="{{showAlertModal}}" class="detail-modal-overlay" bindtap="closeAlertModal">
+    <view class="detail-modal-box animate-scale-in" catchtap="noop">
+      <view class="detail-modal-icon-wrap">
+        <view class="detail-modal-icon">🔔</view>
       </view>
-      <view class="modal-field">
-        <text class="field-label">AQI 上限</text>
-        <input class="field-input" type="digit" value="{{aqiInput}}" bindinput="onAqiInput" placeholder="请输入AQI上限"/>
+      <view class="detail-modal-title">修改告警阈值</view>
+      <view class="detail-modal-subtitle">设置 PM2.5 和 AQI 告警上限</view>
+      <view class="detail-modal-field">
+        <text class="detail-modal-field-label">PM2.5 上限 (μg/m³)</text>
+        <input class="detail-modal-input" type="digit" value="{{pm25Input}}" bindinput="onPm25Input" placeholder="请输入PM2.5上限" placeholder-class="detail-modal-input-placeholder"/>
       </view>
-      <view class="modal-btns">
-        <button class="modal-btn modal-btn-cancel" bindtap="closeAlertModal">取消</button>
-        <button class="modal-btn modal-btn-confirm" bindtap="saveAlertSettings">保存</button>
+      <view class="detail-modal-field">
+        <text class="detail-modal-field-label">AQI 上限</text>
+        <input class="detail-modal-input" type="digit" value="{{aqiInput}}" bindinput="onAqiInput" placeholder="请输入AQI上限" placeholder-class="detail-modal-input-placeholder"/>
+      </view>
+      <view class="detail-modal-btns">
+        <view class="detail-modal-btn detail-modal-btn-cancel" bindtap="closeAlertModal">取消</view>
+        <view class="detail-modal-btn detail-modal-btn-confirm" bindtap="saveAlertSettings">保存</view>
       </view>
     </view>
   </view>

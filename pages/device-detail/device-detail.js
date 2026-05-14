@@ -18,7 +18,23 @@ Page({
     isFavorite: false,
     longitude: '',
     latitude: '',
+    roomLocation: '',
+    roomLocationLabel: '',
     battery: '',
+    simStatus: '',
+    simRunning: false,
+    showRoomPicker: false,
+    selectedRoom: '',
+    selectedRoomLabel: '',
+    selectedRoomIcon: '',
+    roomOptions: [
+      { value: 'living_room', label: '客厅', icon: '🛋️' },
+      { value: 'kitchen', label: '厨房', icon: '🍳' },
+      { value: 'bedroom', label: '卧室', icon: '🛏️' },
+      { value: 'bathroom', label: '厕所', icon: '🚿' },
+      { value: 'balcony', label: '阳台', icon: '🌿' },
+      { value: 'study', label: '书房', icon: '📚' }
+    ],
     pm25Limit: 75,
     aqiLimit: 100,
     showAlertModal: false,
@@ -50,16 +66,66 @@ Page({
       const list = res.data || []
       const device = list.find(d => d.device_id === this.data.deviceId)
       if (device) {
+        const roomNames = {
+          living_room: '客厅', kitchen: '厨房', bedroom: '卧室',
+          bathroom: '厕所', balcony: '阳台', study: '书房'
+        }
         this.setData({
           deviceName: device.device_name || device.device_id,
           status: device.status || 0,
           isActive: device.is_active === 1,
           longitude: device.last_longitude || '',
           latitude: device.last_latitude || '',
+          roomLocation: device.room_location || '',
+          roomLocationLabel: (device.room_location && roomNames[device.room_location]) ? roomNames[device.room_location] : '',
           battery: device.battery != null ? device.battery : ''
         })
       }
-      // 恢复告警设置
+      this.loadAlertSettings()
+      this.loadSimulatorStatus()
+    })
+  },
+
+  loadSimulatorStatus() {
+    api.getSimulatorStatus().then(res => {
+      const data = res.data
+      if (!data || !data.simulators) return
+
+      const sims = data.simulators
+      const did = this.data.deviceId || ''
+      const didLower = did.toLowerCase()
+
+      let isOnline = false
+      for (const skey of Object.keys(sims)) {
+        const sLower = skey.toLowerCase()
+        if (did === skey || didLower === sLower ||
+            sLower.includes(didLower) || didLower.includes(sLower)) {
+          isOnline = (sims[skey].status === 'running')
+          break
+        }
+      }
+
+      this.setData({
+        simRunning: isOnline,
+        simStatus: isOnline ? '运行中' : '已停止',
+        status: isOnline ? 1 : 0
+      })
+    }).catch(e => {
+      console.warn('[Detail-Status] 获取状态失败:', e)
+    })
+  },
+
+  /**
+   * 从后端加载告警阈值
+   */
+  loadAlertSettings() {
+    const open_id = app.globalData.open_id
+    api.getAlertSettings(open_id, this.data.deviceId).then(res => {
+      const data = res.data || {}
+      if (data.aqi_max) this.setData({ aqiLimit: data.aqi_max })
+      if (data.pm2_5_max) this.setData({ pm25Limit: data.pm2_5_max })
+    }).catch(() => {
+      // API失败时尝试从本地缓存读取（兼容旧数据）
       const savedPm25 = wx.getStorageSync('alert_pm25_' + this.data.deviceId)
       const savedAqi = wx.getStorageSync('alert_aqi_' + this.data.deviceId)
       if (savedPm25) this.setData({ pm25Limit: savedPm25 })
@@ -99,38 +165,60 @@ Page({
   },
 
   /**
-   * 更新设备位置（获取手机GPS → 上传到后端）
+   * 刷新模拟器状态
+   */
+  handleRefreshStatus() {
+    this.setData({ simStatus: '检测中...' })
+    this.loadSimulatorStatus()
+    wx.showToast({ title: '已刷新', icon: 'success' })
+  },
+
+  /**
+   * 打开房间选择弹窗
    */
   handleUpdateLocation() {
-    this.setData({ updatingLocation: true })
-    wx.getLocation({
-      type: 'gcj02',
-      success: locRes => {
-        const { longitude, latitude } = locRes
-        api.updateDeviceLocation(this.data.deviceId, longitude, latitude).then(() => {
-          this.setData({
-            longitude: longitude.toFixed(4),
-            latitude: latitude.toFixed(4),
-            updatingLocation: false
-          })
-          wx.showToast({ title: '位置更新成功', icon: 'success' })
-        }).catch(() => {
-          this.setData({ updatingLocation: false })
-        })
-      },
-      fail: err => {
-        this.setData({ updatingLocation: false })
-        if (err.errMsg && err.errMsg.includes('auth deny')) {
-          wx.showModal({
-            title: '需要位置权限',
-            content: '请在设置中允许获取位置信息',
-            confirmText: '去设置',
-            success: r => { if (r.confirm) wx.openSetting() }
-          })
-        } else {
-          wx.showToast({ title: '获取位置失败', icon: 'none' })
-        }
-      }
+    const currentRoom = this.data.roomLocation || 'living_room'
+    const options = this.data.roomOptions
+    const found = options.find(o => o.value === currentRoom) || options[0]
+    this.setData({
+      showRoomPicker: true,
+      selectedRoom: found.value,
+      selectedRoomLabel: found.label,
+      selectedRoomIcon: found.icon
+    })
+  },
+
+  onRoomChange(e) {
+    const index = parseInt(e.detail.value)
+    const options = this.data.roomOptions
+    this.setData({
+      selectedRoom: options[index].value,
+      selectedRoomLabel: options[index].label,
+      selectedRoomIcon: options[index].icon
+    })
+  },
+
+  hideRoomPicker() {
+    this.setData({ showRoomPicker: false })
+  },
+
+  confirmRoomChange() {
+    const open_id = app.globalData.open_id
+    const deviceId = this.data.deviceId
+    const newRoom = this.data.selectedRoom
+
+    wx.showLoading({ title: '更新中...', mask: true })
+    api.bindDevice(open_id, deviceId, newRoom).then(() => {
+      wx.hideLoading()
+      this.setData({
+        showRoomPicker: false,
+        roomLocation: newRoom,
+        roomLocationLabel: this.data.selectedRoomLabel
+      })
+      wx.showToast({ title: '已更新为' + this.data.selectedRoomLabel, icon: 'success' })
+    }).catch(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '更新失败', icon: 'none' })
     })
   },
 
@@ -150,7 +238,7 @@ Page({
   onAqiInput(e) { this.setData({ aqiInput: e.detail.value }) },
 
   /**
-   * 保存告警阈值（本地存储）
+   * 保存告警阈值（调用API）
    */
   saveAlertSettings() {
     const pm25 = parseFloat(this.data.pm25Input)
@@ -163,10 +251,14 @@ Page({
       wx.showToast({ title: '请输入有效的AQI值', icon: 'none' })
       return
     }
-    this.setData({ pm25Limit: pm25, aqiLimit: aqi, showAlertModal: false })
-    wx.setStorageSync('alert_pm25_' + this.data.deviceId, pm25)
-    wx.setStorageSync('alert_aqi_' + this.data.deviceId, aqi)
-    wx.showToast({ title: '保存成功', icon: 'success' })
+
+    const open_id = app.globalData.open_id
+    api.setAlertSettings(open_id, this.data.deviceId, aqi, pm25).then(() => {
+      this.setData({ pm25Limit: pm25, aqiLimit: aqi, showAlertModal: false })
+      wx.showToast({ title: '保存成功', icon: 'success' })
+    }).catch(() => {
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+    })
   },
 
   /**

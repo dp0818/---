@@ -20,12 +20,12 @@ function login(code) {
 }
 
 // ==================== 2. 设备管理 ====================
-function bindDevice(open_id, device_id) {
+function bindDevice(open_id, device_id, room_location) {
   return new Promise((resolve, reject) => {
     app.request({
       url: '/api/devices/bind',
       method: 'POST',
-      data: { open_id, device_id },
+      data: { open_id, device_id, room_location: room_location || 'living_room' },
       success: resolve,
       fail: reject
     })
@@ -143,12 +143,59 @@ function getFavoriteList(open_id) {
 }
 
 // ==================== 5. 运维监控（可选） ====================
+// GET /api/status → { total, online, offline, simulators: { "CQ_001": {"status":"running",...}, ... } }
 function getSimulatorStatus() {
   return new Promise((resolve, reject) => {
-    app.request({
-      url: '/api/status',
+    wx.request({
+      url: app.globalData.baseUrl + '/api/status',
       method: 'GET',
-      data: {},
+      header: { 'content-type': 'application/json' },
+      success(res) {
+        if (res.statusCode === 200) {
+          resolve({ data: res.data })
+        } else if (res.statusCode === 404) {
+          resolve({ data: null })
+        } else {
+          reject(res)
+        }
+      },
+      fail: reject
+    })
+  })
+}
+
+// ==================== 6. 告警管理 ====================
+function getAlertSettings(open_id, device_id) {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/alerts',
+      method: 'GET',
+      data: { open_id, device_id },
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
+function setAlertSettings(open_id, device_id, aqi_max, pm25_max) {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/alerts/set',
+      method: 'POST',
+      data: { open_id, device_id, aqi_max, pm2_5_max: pm25_max },
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
+// ==================== 7. AI 分析 ====================
+function aiAnalyze(device_id, hours) {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/ai/analyze',
+      method: 'POST',
+      data: { device_id, hours: hours || 24 },
       success: resolve,
       fail: reject
     })
@@ -167,5 +214,8 @@ module.exports = {
   addFavorite,
   removeFavorite,
   getFavoriteList,
-  getSimulatorStatus
+  getSimulatorStatus,
+  getAlertSettings,
+  setAlertSettings,
+  aiAnalyze
 }

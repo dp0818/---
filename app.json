@@ -43,7 +43,7 @@
     "navigationBarTitleText": "城市空气质量检测",
     "navigationBarBackgroundColor": "#4CAF50",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F5F5"
+    "backgroundColor": "#F5F7FA"
   },
   "permission": {
     "scope.userLocation": {

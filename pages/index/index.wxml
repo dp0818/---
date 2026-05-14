@@ -1,26 +1,34 @@
-<view class="page-container">
+<view class="home-container">
+  <!-- 顶部渐变背景 -->
+  <view class="home-header-bg"></view>
 
-  <!-- 顶部设备切换栏 -->
-  <view class="device-bar" bindtap="handleSwitchDevice">
-    <view class="device-bar-inner">
-      <view class="device-info">
-        <view class="device-icon">📡</view>
-        <view>
-          <view class="device-name">{{currentDeviceName || '请选择设备'}}</view>
-          <view class="device-meta">
-            <text wx:if="{{battery !== '--'}}">🔋 {{battery}}%</text>
-            <text wx:if="{{signal !== '--'}}" style="margin-left: 16rpx;">📶 {{signal}}dBm</text>
-          </view>
-        </view>
+  <!-- 报警横幅 -->
+  <view wx:if="{{alert && !_bannerDismissed}}" class="alert-banner {{alertLevel}}"
+    bindtouchstart="onAlertBannerTouchStart"
+    bindtouchmove="onAlertBannerTouchMove">
+    <view class="alert-aqi-dot {{alertLevel}}"></view>
+    <view class="alert-icon">⚠️</view>
+    <text class="alert-text">空气质量{{alertLevelText}}！AQI: {{aqi}}</text>
+    <view class="alert-close" bindtap="closeAlert">✕</view>
+  </view>
+
+  <!-- 头部信息 -->
+  <view class="home-header">
+    <view class="header-greeting">
+      <view class="greeting-title">空气质量监测</view>
+      <view class="greeting-sub">{{currentDeviceName || '请选择设备'}}</view>
+    </view>
+    <view class="header-avatar" bindtap="handleSwitchDevice">
+      <view class="avatar-ring {{aqiClass ? 'ring-' + aqiClass.replace('aqi-', '') : ''}}">
+        <view class="avatar-inner">📡</view>
       </view>
-      <view class="device-arrow">
-        <view class="arrow-icon">›</view>
-      </view>
+      <view class="avatar-status {{status === 1 || status === 'online' ? 'online' : 'offline'}}"></view>
     </view>
   </view>
 
   <!-- 无设备空状态 -->
-  <view wx:if="{{!currentDeviceId}}" class="empty-state">
+  <view wx:if="{{!currentDeviceId}}" class="empty-state animate-fade-in">
+    <view class="empty-glow"></view>
     <view class="empty-icon">🌤️</view>
     <view class="empty-text">暂无绑定设备</view>
     <view class="empty-hint">请前往"设备"页面扫码或输入ID绑定</view>
@@ -28,78 +36,141 @@
 
   <!-- 有设备时展示数据 -->
   <block wx:else>
-    <!-- AQI 大卡片 -->
-    <view class="aqi-card {{bgClass}}">
-      <view class="aqi-label">空气质量指数 (AQI)</view>
-      <view class="aqi-value">{{aqi}}</view>
-      <view class="aqi-level-row">
-        <view class="aqi-level-tag">{{levelText}}</view>
-        <view class="aqi-update">更新于 {{sampleTime}}</view>
+    <!-- AQI 大圆环 -->
+    <view class="aqi-hero animate-scale-in">
+      <view class="aqi-ring-bg">
+        <view class="aqi-ring-progress {{aqiClass}}" style="--progress: {{aqi > 300 ? 100 : (aqi / 3)}}%;">
+          <view class="aqi-ring-inner">
+            <view class="aqi-number">{{aqi}}</view>
+            <view class="aqi-unit">AQI</view>
+          </view>
+        </view>
       </view>
+      <view class="aqi-badge {{aqiClass}}">{{levelText}}</view>
+      <view class="aqi-time">{{sampleTime ? '更新于 ' + sampleTime : '实时监测中'}}</view>
     </view>
 
-    <!-- 污染物网格 -->
-    <view class="pollutant-grid">
-      <view class="grid-item">
-        <view class="grid-icon" style="background:#E8F5E9;">🌫️</view>
-        <view class="grid-label">PM2.5</view>
-        <view class="grid-value">{{pm2_5}} <text class="grid-unit">μg/m³</text></view>
+    <!-- 污染物指标 -->
+    <view class="metrics-section">
+      <view class="section-title">
+        <view class="title-line"></view>
+        <text>污染物指标</text>
       </view>
-      <view class="grid-item">
-        <view class="grid-icon" style="background:#E3F2FD;">🧪</view>
-        <view class="grid-label">NO₂</view>
-        <view class="grid-value">{{no2}} <text class="grid-unit">mg/m³</text></view>
-      </view>
-      <view class="grid-item">
-        <view class="grid-icon" style="background:#F3E5F5;">☁️</view>
-        <view class="grid-label">SO₂</view>
-        <view class="grid-value">{{so2}} <text class="grid-unit">mg/m³</text></view>
-      </view>
-      <view class="grid-item">
-        <view class="grid-icon" style="background:#E0F7FA;">☀️</view>
-        <view class="grid-label">O₃</view>
-        <view class="grid-value">{{o3}} <text class="grid-unit">mg/m³</text></view>
+      <view class="metrics-grid">
+        <view class="metric-card animate-fade-in" style="animation-delay: 0.1s;">
+          <view class="metric-icon-wrap" style="background: rgba(76,175,80,0.1);">
+            <view class="metric-icon" style="color: #4CAF50;">🌫️</view>
+          </view>
+          <view class="metric-info">
+            <view class="metric-name">PM2.5</view>
+            <view class="metric-value">{{pm2_5}}<text class="metric-unit">μg/m³</text></view>
+          </view>
+        </view>
+        <view class="metric-card animate-fade-in" style="animation-delay: 0.15s;">
+          <view class="metric-icon-wrap" style="background: rgba(33,150,243,0.1);">
+            <view class="metric-icon" style="color: #2196F3;">🧪</view>
+          </view>
+          <view class="metric-info">
+            <view class="metric-name">NO₂</view>
+            <view class="metric-value">{{no2}}<text class="metric-unit">mg/m³</text></view>
+          </view>
+        </view>
+        <view class="metric-card animate-fade-in" style="animation-delay: 0.2s;">
+          <view class="metric-icon-wrap" style="background: rgba(255,152,0,0.1);">
+            <view class="metric-icon" style="color: #FF9800;">☁️</view>
+          </view>
+          <view class="metric-info">
+            <view class="metric-name">SO₂</view>
+            <view class="metric-value">{{so2}}<text class="metric-unit">mg/m³</text></view>
+          </view>
+        </view>
+        <view class="metric-card animate-fade-in" style="animation-delay: 0.25s;">
+          <view class="metric-icon-wrap" style="background: rgba(156,39,176,0.1);">
+            <view class="metric-icon" style="color: #9C27B0;">☀️</view>
+          </view>
+          <view class="metric-info">
+            <view class="metric-name">O₃</view>
+            <view class="metric-value">{{o3}}<text class="metric-unit">mg/m³</text></view>
+          </view>
+        </view>
       </view>
     </view>
 
     <!-- 快捷操作 -->
     <view class="quick-actions">
-      <view class="action-item" bindtap="goAnalysis">
-        <view class="action-icon" style="background:linear-gradient(135deg,#4CAF50,#66BB6A);">📊</view>
-        <view class="action-text">历史分析</view>
+      <view class="action-card" bindtap="goAnalysis">
+        <view class="action-glow" style="background: rgba(76,175,80,0.15);"></view>
+        <view class="action-icon">📊</view>
+        <view class="action-title">历史分析</view>
+        <view class="action-desc">查看趋势图表</view>
       </view>
-      <view class="action-item" bindtap="goMap">
-        <view class="action-icon" style="background:linear-gradient(135deg,#2196F3,#42A5F5);">🗺️</view>
-        <view class="action-text">地图查看</view>
+      <view class="action-card" bindtap="goMap">
+        <view class="action-glow" style="background: rgba(33,150,243,0.15);"></view>
+        <view class="action-icon">🏠</view>
+        <view class="action-title">家庭地图</view>
+        <view class="action-desc">房间分布监测</view>
       </view>
-      <view class="action-item" bindtap="goDetail">
-        <view class="action-icon" style="background:linear-gradient(135deg,#78909C,#90A4AE);">⚙️</view>
-        <view class="action-text">设备详情</view>
+      <view class="action-card" bindtap="goDetail">
+        <view class="action-glow" style="background: rgba(120,144,156,0.15);"></view>
+        <view class="action-icon">⚙️</view>
+        <view class="action-title">设备详情</view>
+        <view class="action-desc">管理与设置</view>
       </view>
     </view>
 
-    <view style="height: 40rpx;"></view>
+    <view style="height: 60rpx;"></view>
   </block>
+
+  <!-- 自定义报警弹窗 -->
+  <view wx:if="{{showAlertDialog}}" class="alert-dialog-mask" bindtap="closeAlertDialog">
+    <view class="alert-dialog" catchtap="noop">
+      <view class="dialog-header">
+        <view class="dialog-icon-wrap">
+          <text class="dialog-icon-text">⚠️</text>
+        </view>
+        <view class="dialog-title">空气质量报警</view>
+      </view>
+      <view class="dialog-content">
+        <view class="dialog-aqi-row">
+          <text class="dialog-aqi-label">当前 AQI</text>
+          <text class="dialog-aqi-value {{alertLevel}}">{{alertAqi}}</text>
+        </view>
+        <view class="dialog-level-row">
+          <text class="dialog-level-label">污染等级</text>
+          <view class="dialog-level-badge {{alertLevel}}">{{alertLevelText}}</view>
+        </view>
+        <view class="dialog-time-row">
+          <text class="dialog-time-label">更新时间</text>
+          <text class="dialog-time-value">{{alertTime}}</text>
+        </view>
+        <view class="dialog-advice-box">
+          <view class="dialog-advice-title">💡 建议措施</view>
+          <text class="dialog-advice-text">{{alertAdvice}}</text>
+        </view>
+      </view>
+      <view class="dialog-footer">
+        <button class="dialog-btn" bindtap="closeAlertDialog">我知道了</button>
+      </view>
+    </view>
+  </view>
 
   <!-- 设备选择弹窗 -->
   <view wx:if="{{showDevicePicker}}" class="picker-mask" bindtap="closePicker">
-    <view class="picker-content" catchtap="noop">
+    <view class="picker-content animate-slide-up" catchtap="noop">
+      <view class="picker-drag-bar"><view class="drag-indicator"></view></view>
       <view class="picker-title">选择设备</view>
       <scroll-view scroll-y class="picker-list">
-        <view
-          wx:for="{{deviceList}}" wx:key="device_id"
+        <view wx:for="{{deviceList}}" wx:key="device_id"
           class="picker-item {{item.device_id === currentDeviceId ? 'picker-item-active' : ''}}"
-          bindtap="selectDevice" data-index="{{index}}"
-        >
+          bindtap="selectDevice" data-index="{{index}}">
           <view class="picker-item-left">
-            <view class="picker-dot {{item.status === 1 ? 'dot-online' : 'dot-offline'}}"></view>
-            <text>{{item.device_name || item.device_id}}</text>
+            <view class="picker-dot {{item.status === 1 || item.status === 'online' ? 'dot-online' : 'dot-offline'}}"></view>
+            <text class="picker-item-name">{{item.device_name || item.device_id}}</text>
           </view>
           <text wx:if="{{item.device_id === currentDeviceId}}" class="check-mark">✓</text>
         </view>
         <view wx:if="{{deviceList.length === 0}}" class="picker-empty">暂无设备</view>
       </scroll-view>
-      <view class="picker-close" bindtap="closePicker">取消</view>
     </view>
   </view>
 </view>

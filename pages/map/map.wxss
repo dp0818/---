@@ -1,73 +1,465 @@
-/* ===== 地图页 ===== */
-.map-container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
+.home-3d-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #F8F9FA 0%, #FFFFFF 40%);
+  padding-bottom: 180rpx;
 }
 
-/* 地图占满 */
-.device-map { width: 100%; height: 100%; }
+/* ===== 顶部标题 ===== */
+.map3d-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx 16rpx;
+}
 
-/* ===== 底部设备横条 ===== */
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
+.map3d-title-group {
+  flex: 1;
+}
+
+.map3d-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2C3E50;
+  letter-spacing: 1rpx;
+}
+
+.map3d-subtitle {
+  font-size: 24rpx;
+  color: #95A5A6;
+  margin-top: 6rpx;
+}
+
+.map3d-refresh {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #F0F4F8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-icon {
+  font-size: 36rpx;
+  color: #4CAF50;
+}
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ===== 网格容器 ===== */
+.rooms-grid-wrapper {
+  padding: 20rpx 28rpx;
+  position: relative;
+  z-index: 5;
+  min-height: 70vh;
+  overflow: hidden;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 20rpx;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.rooms-grid.zoomed {
+  box-shadow: 0 30rpx 80rpx rgba(0,0,0,0.15);
+}
+
+/* ===== 房间卡片（块状按钮）===== */
+.room-card {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 28rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4rpx 16rpx rgba(0,0,0,0.06),
+    0 1rpx 4rpx rgba(0,0,0,0.04);
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 200rpx;
+}
+
+.room-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  height: 150rpx;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20rpx);
-  white-space: nowrap;
-  display: flex;
-  flex-direction: row;
-  box-shadow: 0 -4rpx 24rpx rgba(0,0,0,0.08);
-  padding: 16rpx 0 20rpx;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
-.bar-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 180rpx;
-  height: 100%;
-  margin-left: 16rpx;
-  border-radius: 16rpx;
-  background: #F0F4F3;
-  flex-shrink: 0;
-  transition: all 0.2s;
-}
-.bar-item-active {
-  background: #F0FDF4;
-  border: 2rpx solid #4CAF50;
-}
-.bar-item-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.bar-name {
-  font-size: 24rpx; color: #1A2332; font-weight: 600;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  max-width: 150rpx;
-}
-.bar-bottom { display: flex; align-items: center; gap: 8rpx; margin-top: 6rpx; }
-.bar-aqi {
-  font-size: 32rpx; font-weight: 700;
-}
-.bar-level { font-size: 18rpx; }
 
-/* ===== 空状态 ===== */
+.room-card:active {
+  transform: scale(0.96);
+}
+
+.room-card.active {
+  border-color: #4CAF50;
+  box-shadow:
+    0 8rpx 32rpx rgba(76,175,80,0.2),
+    0 2rpx 8rpx rgba(76,175,80,0.1);
+  animation: cardPulse 2s ease-in-out infinite;
+}
+
+@keyframes cardPulse {
+  0%, 100% { box-shadow: 0 8rpx 32rpx rgba(76,175,80,0.2), 0 2rpx 8rpx rgba(76,175,80,0.1); }
+  50% { box-shadow: 0 12rpx 44rpx rgba(76,175,80,0.3), 0 4rpx 12rpx rgba(76,175,80,0.15); }
+}
+
+.room-card-large {
+  grid-column: span 2;
+  min-height: 220rpx;
+}
+
+.card-icon {
+  font-size: 56rpx;
+  margin-bottom: 12rpx;
+  line-height: 1;
+}
+
+.card-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2C3E50;
+  margin-bottom: 10rpx;
+}
+
+.card-aqi {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+  margin-bottom: 6rpx;
+}
+
+.aqi-num {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #2C3E50;
+}
+
+.aqi-unit {
+  font-size: 20rpx;
+  color: #95A5A6;
+  font-weight: 500;
+}
+
+.card-devices {
+  font-size: 22rpx;
+  color: #BDC3C7;
+}
+
+/* ===== AQI 颜色等级 ===== */
+.room-card.aqi-excellent {
+  background: linear-gradient(145deg, #E8F5E9 0%, #F1F8E9 100%);
+}
+.room-card.aqi-excellent .aqi-num { color: #388E3C; }
+
+.room-card.aqi-good {
+  background: linear-gradient(145deg, #FFFDE7 0%, #FFFEF0 100%);
+}
+.room-card.aqi-good .aqi-num { color: #F9A825; }
+
+.room-card.aqi-mild {
+  background: linear-gradient(145deg, #FFF3E0 0%, #FFF8E1 100%);
+}
+.room-card.aqi-mild .aqi-num { color: #EF6C00; }
+
+.room-card.aqi-moderate {
+  background: linear-gradient(145deg, #FFEBEE 0%, #FFF1F2 100%);
+}
+.room-card.aqi-moderate .aqi-num { color: #D32F2F; }
+
+.room-card.aqi-severe {
+  background: linear-gradient(145deg, #F3E5F5 0%, #F9F5FF 100%);
+}
+.room-card.aqi-severe .aqi-num { color: #7B1FA2; }
+
+/* ===== 详情面板 ===== */
+.room-detail-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  box-shadow: 0 -8rpx 40rpx rgba(0,0,0,0.12);
+  z-index: 100;
+  max-height: 65vh;
+  transform: translateY(110%);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.room-detail-panel.panel-open {
+  transform: translateY(0);
+}
+
+.panel-drag-bar {
+  padding: 20rpx 0 16rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.drag-indicator {
+  width: 60rpx;
+  height: 8rpx;
+  background: #E0E0E0;
+  border-radius: 4rpx;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  padding: 0 32rpx 24rpx;
+  gap: 20rpx;
+}
+
+.panel-room-icon {
+  font-size: 48rpx;
+  line-height: 1;
+}
+
+.panel-room-info {
+  flex: 1;
+}
+
+.panel-room-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2C3E50;
+}
+
+.panel-room-count {
+  font-size: 24rpx;
+  color: #95A5A6;
+  margin-top: 4rpx;
+}
+
+.panel-room-aqi {
+  text-align: center;
+  padding: 14rpx 24rpx;
+  border-radius: 16rpx;
+  background: #F5F7FA;
+}
+
+.panel-aqi-num {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #2C3E50;
+}
+
+.panel-aqi-text {
+  font-size: 18rpx;
+  color: #95A5A6;
+  margin-top: 2rpx;
+}
+
+.panel-device-list {
+  max-height: 45vh;
+  padding: 0 24rpx 40rpx;
+}
+
+.panel-device-card {
+  background: #FAFBFC;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.device-card-glow {
+  position: absolute;
+  top: -20rpx;
+  left: -20rpx;
+  right: -20rpx;
+  bottom: -20rpx;
+  opacity: 0.08;
+  filter: blur(20rpx);
+  pointer-events: none;
+}
+
+.device-card-glow.aqi-excellent { background: #4CAF50; }
+.device-card-glow.aqi-good { background: #FFC107; }
+.device-card-glow.aqi-mild { background: #FF9800; }
+.device-card-glow.aqi-moderate { background: #F44336; }
+.device-card-glow.aqi-severe { background: #9C27B0; }
+
+.device-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.device-card-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.device-card-icon-wrap {
+  position: relative;
+}
+
+.device-card-icon {
+  font-size: 44rpx;
+}
+
+.device-status-ring {
+  position: absolute;
+  bottom: -2rpx;
+  right: -2rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 3rpx solid #FFF;
+}
+
+.device-status-ring.online { background: #4CAF50; }
+.device-status-ring.offline { background: #BDC3C7; }
+
+.device-card-info {
+  flex: 1;
+}
+
+.device-card-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2C3E50;
+}
+
+.device-card-meta {
+  margin-top: 4rpx;
+}
+
+.meta-time {
+  font-size: 22rpx;
+  color: #95A5A6;
+}
+
+.device-card-right {
+  text-align: center;
+}
+
+.aqi-ring {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F0F4F8;
+  margin-bottom: 6rpx;
+}
+
+.aqi-ring-value {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #2C3E50;
+}
+
+.aqi-ring-label {
+  font-size: 20rpx;
+  font-weight: 500;
+}
+
+.aqi-ring-label.aqi-excellent { color: #4CAF50; }
+.aqi-ring-label.aqi-good { color: #FFC107; }
+.aqi-ring-label.aqi-mild { color: #FF9800; }
+.aqi-ring-label.aqi-moderate { color: #F44336; }
+.aqi-ring-label.aqi-severe { color: #9C27B0; }
+
+.detail-metrics {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #EEE;
+}
+
+.metric-item {
+  flex: 1;
+  text-align: center;
+}
+
+.metric-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  margin: 0 auto 8rpx;
+}
+
+.metric-label {
+  font-size: 20rpx;
+  color: #95A5A6;
+  margin-bottom: 4rpx;
+}
+
+.metric-value {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2C3E50;
+}
+
+.metric-unit {
+  font-size: 18rpx;
+  color: #BDC3C7;
+}
+
+.panel-empty {
+  padding: 60rpx 32rpx;
+  text-align: center;
+}
+
+.panel-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.panel-empty-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2C3E50;
+  margin-bottom: 10rpx;
+}
+
+.panel-empty-hint {
+  font-size: 24rpx;
+  color: #95A5A6;
+}
+
 .empty-overlay {
   position: fixed;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255,255,255,0.95);
-  padding: 48rpx 60rpx;
-  border-radius: 24rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.1);
+  text-align: center;
+  z-index: 10;
 }
-.empty-overlay .empty-icon { font-size: 64rpx; margin-bottom: 16rpx; }
-.empty-overlay .empty-text { font-size: 28rpx; color: #94A3B8; }
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #2C3E50;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #95A5A6;
+}

@@ -1,103 +1,82 @@
-/**
- * 全局样式 - 城市空气质量检测
- * 主色: #4CAF50 (清新绿)
- */
-
-/* === 页面基础 === */
+/* ===== 全局样式 - 白色+绿色清新风 ===== */
 page {
-  background-color: #F0F4F3;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  font-size: 28rpx;
-  color: #1A2332;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #F5F7FA;
+  color: #333333;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* === 卡片通用样式 === */
+/* 滚动条隐藏 */
+::-webkit-scrollbar { display: none; }
+
+/* ===== 通用卡片 ===== */
 .card {
-  background-color: #FFFFFF;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
-  padding: 28rpx;
-  margin: 16rpx 20rpx;
-  transition: all 0.3s ease;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  border: 1rpx solid #E8ECF0;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
 }
 
-/* === 按钮 === */
+/* ===== 通用按钮 ===== */
 .btn-primary {
   background: linear-gradient(135deg, #4CAF50, #43A047);
-  color: #FFFFFF;
-  border-radius: 48rpx;
-  text-align: center;
-  padding: 24rpx 0;
-  font-size: 30rpx;
-  border: none;
-  box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
+  color: #fff;
+  border-radius: 40rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(76,175,80,0.3);
+  transition: all 0.3s ease;
 }
 .btn-primary:active {
-  transform: scale(0.98);
-  opacity: 0.9;
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 12rpx rgba(76,175,80,0.2);
 }
 
-.btn-danger {
-  background: linear-gradient(135deg, #F44336, #E53935);
-  color: #FFFFFF;
-  border-radius: 48rpx;
-  text-align: center;
-  padding: 24rpx 0;
-  font-size: 30rpx;
-  border: none;
-  box-shadow: 0 4rpx 16rpx rgba(244, 67, 54, 0.3);
+/* ===== AQI 颜色等级 ===== */
+.aqi-excellent { background: linear-gradient(135deg, #4CAF50, #66BB6A); }
+.aqi-good { background: linear-gradient(135deg, #FFC107, #FFD54F); }
+.aqi-mild { background: linear-gradient(135deg, #FF9800, #FFB74D); }
+.aqi-moderate { background: linear-gradient(135deg, #F44336, #EF5350); }
+.aqi-severe { background: linear-gradient(135deg, #9C27B0, #AB47BC); }
+
+/* 文字颜色版 */
+.text-excellent { color: #4CAF50; }
+.text-good { color: #FFC107; }
+.text-mild { color: #FF9800; }
+.text-moderate { color: #F44336; }
+.text-severe { color: #9C27B0; }
+
+/* ===== 动画 ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-.btn-default {
-  background-color: #FFFFFF;
-  color: #1A2332;
-  border-radius: 48rpx;
-  text-align: center;
-  padding: 24rpx 0;
-  font-size: 30rpx;
-  border: 2rpx solid #E8ECF0;
+.animate-fade-in { animation: fadeIn 0.5s ease forwards; }
+.animate-scale-in { animation: scaleIn 0.4s ease forwards; }
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* ===== 玻璃拟态（浅色版）===== */
+.glass {
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(20rpx);
+  border: 1rpx solid #E8ECF0;
 }
 
-/* === flex 工具类 === */
-.flex-row { display: flex; flex-direction: row; align-items: center; }
-.flex-column { display: flex; flex-direction: column; }
-.flex-between { display: flex; justify-content: space-between; align-items: center; }
-
-/* === 在线状态圆点 === */
-.status-dot {
-  width: 14rpx; height: 14rpx;
-  border-radius: 50%;
-  display: inline-block;
-}
-.status-dot.online { background-color: #4CAF50; box-shadow: 0 0 8rpx rgba(76, 175, 80, 0.5); }
-.status-dot.offline { background-color: #CBD5E0; }
-
-/* === AQI 等级颜色（文字） === */
-.aqi-excellent { color: #4CAF50; }
-.aqi-good      { color: #FFC107; }
-.aqi-mild      { color: #FF9800; }
-.aqi-moderate  { color: #F44336; }
-.aqi-severe    { color: #9C27B0; }
-
-/* === AQI 等级小圆点 === */
-.level-excellent  { background-color: #4CAF50; }
-.level-good       { background-color: #FFC107; }
-.level-mild       { background-color: #FF9800; }
-.level-moderate   { background-color: #F44336; }
-.level-severe     { background-color: #9C27B0; }
-
-/* === AQI 等级背景色（渐变色卡） === */
-.bg-aqi-excellent { background: linear-gradient(135deg, #4CAF50, #66BB6A); }
-.bg-aqi-good      { background: linear-gradient(135deg, #FFC107, #FFCA28); }
-.bg-aqi-mild      { background: linear-gradient(135deg, #FF9800, #FFA726); }
-.bg-aqi-moderate  { background: linear-gradient(135deg, #F44336, #EF5350); }
-.bg-aqi-severe    { background: linear-gradient(135deg, #9C27B0, #AB47BC); }
-
-/* === 空状态 === */
-.empty-state {
-  display: flex; flex-direction: column; align-items: center;
-  padding-top: 200rpx;
-}
-.empty-icon { font-size: 100rpx; margin-bottom: 24rpx; opacity: 0.6; }
-.empty-text { font-size: 30rpx; color: #94A3B8; margin-bottom: 12rpx; }
-.empty-hint { font-size: 26rpx; color: #CBD5E0; }
+/* ===== 发光效果 ===== */
+.glow-green { box-shadow: 0 0 20rpx rgba(76,175,80,0.25); }
+.glow-yellow { box-shadow: 0 0 20rpx rgba(255,193,7,0.25); }
+.glow-orange { box-shadow: 0 0 20rpx rgba(255,152,0,0.25); }
+.glow-red { box-shadow: 0 0 20rpx rgba(244,67,54,0.25); }
+.glow-purple { box-shadow: 0 0 20rpx rgba(156,39,176,0.25); }

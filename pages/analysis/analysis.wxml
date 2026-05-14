@@ -1,5 +1,4 @@
 <view class="page-container">
-  <!-- 顶部设备切换栏 -->
   <view class="analysis-header">
     <view class="device-bar" bindtap="handleSwitchDevice">
       <view class="device-bar-inner">
@@ -19,14 +18,12 @@
     </view>
   </view>
 
-  <!-- 无设备空状态 -->
   <view wx:if="{{!currentDeviceId}}" class="empty-state">
     <view class="empty-icon">📊</view>
     <view class="empty-text">请先选择设备</view>
   </view>
 
   <block wx:else>
-    <!-- 今日统计三卡片 -->
     <view class="summary-row">
       <view class="summary-card" style="background:linear-gradient(135deg,#4CAF50,#66BB6A);">
         <view class="summary-label">平均 AQI</view>
@@ -45,36 +42,65 @@
       </view>
     </view>
 
-    <!-- 历史数据 -->
-    <view class="card history-card">
+    <!-- 折线图 -->
+    <view class="chart-card">
       <view class="section-title">
-        <text>📈 历史数据</text>
+        <text>📈 趋势图表</text>
         <text class="section-badge">最近{{hours}}小时</text>
       </view>
 
       <view wx:if="{{historyList.length === 0}}" class="empty-mini">暂无历史数据</view>
 
-      <view wx:else class="history-table">
-        <!-- 表头 -->
-        <view class="table-header">
-          <view class="col-time">时间</view>
-          <view class="col-aqi">AQI</view>
-          <view class="col-pm">PM2.5</view>
+      <view wx:else class="chart-wrapper">
+        <view class="chart-legend">
+          <view class="legend-item"><view class="legend-dot legend-aqi"></view><text>AQI</text></view>
+          <view class="legend-item"><view class="legend-dot legend-pm"></view><text>PM2.5</text></view>
+          <view class="legend-item"><view class="legend-dot legend-no2"></view><text>NO₂</text></view>
         </view>
-        <!-- 数据行 -->
-        <view wx:for="{{historyList}}" wx:key="sample_time" class="table-row {{item.aqiClass}}">
-          <view class="col-time">{{item.timeStr}}</view>
-          <view class="col-aqi">
-            <view class="aqi-dot {{item.levelClass}}"></view>
-            {{item.aqi}}
-          </view>
-          <view class="col-pm">{{item.pm2_5 || '--'}}</view>
+        <canvas canvas-id="trendChart" id="trendChart"
+          class="chart-canvas"
+          style="width: {{chartWidth}}px; height: {{chartHeight}}px;"
+          bindtouchstart="onTouchStart"
+          bindtouchmove="onTouchMove"
+          bindtouchend="onTouchEnd"></canvas>
+        <view wx:if="{{tooltip.show}}" class="tooltip-box" style="left: {{tooltip.x}}px; top: {{tooltip.y}}px;">
+          <view class="tooltip-time">{{tooltip.time}}</view>
+          <view class="tooltip-row tooltip-aqi">AQI: {{tooltip.aqi}}</view>
+          <view class="tooltip-row tooltip-pm">PM2.5: {{tooltip.pm}}</view>
+          <view class="tooltip-row tooltip-no2">NO₂: {{tooltip.no2}}</view>
+        </view>
+      </view>
+
+      <view class="chart-actions" wx:if="{{historyList.length > 0}}">
+        <view class="chart-action-btn" bindtap="exportChart">
+          <text>📷 导出图片</text>
+        </view>
+        <view class="chart-action-btn" bindtap="shareChart">
+          <text>🔗 分享</text>
         </view>
       </view>
     </view>
+
+    <!-- AI 分析卡片 -->
+    <view class="chart-card" style="margin-top: 20rpx;">
+      <view class="section-title">
+        <text>🧠 AI 空气质量分析</text>
+      </view>
+      <view style="margin-top: 20rpx;">
+        <button class="ai-btn {{aiLoading ? 'ai-btn-loading' : ''}}"
+          bindtap="loadAIAnalysis" disabled="{{aiLoading}}">
+          <text wx:if="{{!aiLoading}}">🤖 开始分析</text>
+          <text wx:else>⏳ 分析中...</text>
+        </button>
+      </view>
+      <view wx:if="{{aiShow && !aiLoading && aiResult}}" class="ai-result-box">
+        <view class="ai-result-text">{{aiResult}}</view>
+        <view class="ai-result-close" bindtap="closeAI">收起</view>
+      </view>
+      <view wx:if="{{aiError}}" class="ai-error">{{aiError}}</view>
+    </view>
   </block>
 
-  <!-- 设备选择弹窗 -->
   <view wx:if="{{showDevicePicker}}" class="picker-mask" bindtap="closePicker">
     <view class="picker-content" catchtap="noop">
       <view class="picker-title">选择设备</view>
@@ -83,7 +109,7 @@
           class="picker-item {{item.device_id === currentDeviceId ? 'picker-item-active' : ''}}"
           bindtap="selectDevice" data-index="{{index}}">
           <view class="picker-item-left">
-            <view class="picker-dot {{item.status === 1 ? 'dot-online' : 'dot-offline'}}"></view>
+            <view class="picker-dot {{item.status === 1 || item.status === 'online' ? 'dot-online' : 'dot-offline'}}"></view>
             <text>{{item.device_name || item.device_id}}</text>
           </view>
           <text wx:if="{{item.device_id === currentDeviceId}}" class="check-mark">✓</text>
