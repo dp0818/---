@@ -60,7 +60,6 @@
           <view class="col-time">时间</view>
           <view class="col-aqi">AQI</view>
           <view class="col-pm">PM2.5</view>
-          <view class="col-pm">PM10</view>
         </view>
         <!-- 数据行 -->
         <view wx:for="{{historyList}}" wx:key="sample_time" class="table-row {{item.aqiClass}}">
@@ -70,7 +69,6 @@
             {{item.aqi}}
           </view>
           <view class="col-pm">{{item.pm2_5 || '--'}}</view>
-          <view class="col-pm">{{item.pm10 || '--'}}</view>
         </view>
       </view>
     </view>

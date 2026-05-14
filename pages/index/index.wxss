@@ -61,7 +61,7 @@
 /* ===== 污染物网格 ===== */
 .pollutant-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 16rpx;
   margin: 16rpx 20rpx;
 }

@@ -46,11 +46,6 @@
         <view class="grid-value">{{pm2_5}} <text class="grid-unit">μg/m³</text></view>
       </view>
       <view class="grid-item">
-        <view class="grid-icon" style="background:#FFF3E0;">🏭</view>
-        <view class="grid-label">PM10</view>
-        <view class="grid-value">{{pm10}} <text class="grid-unit">μg/m³</text></view>
-      </view>
-      <view class="grid-item">
         <view class="grid-icon" style="background:#E3F2FD;">🧪</view>
         <view class="grid-label">NO₂</view>
         <view class="grid-value">{{no2}} <text class="grid-unit">mg/m³</text></view>
@@ -64,11 +59,6 @@
         <view class="grid-icon" style="background:#E0F7FA;">☀️</view>
         <view class="grid-label">O₃</view>
         <view class="grid-value">{{o3}} <text class="grid-unit">mg/m³</text></view>
-      </view>
-      <view class="grid-item">
-        <view class="grid-icon" style="background:#FFF8E1;">🌡️</view>
-        <view class="grid-label">温湿度</view>
-        <view class="grid-value">{{temperature}}° <text class="grid-unit">{{humidity}}%</text></view>
       </view>
     </view>
 

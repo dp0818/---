@@ -20,12 +20,9 @@ Page({
     // 空气质量数据
     aqi: '--',
     pm2_5: '--',
-    pm10: '--',
     no2: '--',
     so2: '--',
     o3: '--',
-    temperature: '--',
-    humidity: '--',
     sampleTime: '',
 
     // UI 状态
@@ -108,12 +105,9 @@ Page({
       this.setData({
         aqi: d.aqi != null ? d.aqi : '--',
         pm2_5: d.pm2_5 != null ? d.pm2_5 : '--',
-        pm10: d.pm10 != null ? d.pm10 : '--',
         no2: d.no2 != null ? d.no2 : '--',
         so2: d.so2 != null ? d.so2 : '--',
         o3: d.o3 != null ? d.o3 : '--',
-        temperature: d.temperature != null ? d.temperature : '--',
-        humidity: d.humidity != null ? d.humidity : '--',
         sampleTime: d.sample_time || '',
         aqiClass: levelInfo.aqiClass,
         levelText: levelInfo.levelText,
