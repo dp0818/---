@@ -93,16 +93,11 @@ Page({
 
       const sims = data.simulators
       const did = this.data.deviceId || ''
-      const didLower = did.toLowerCase()
+      const simInfo = sims[did]
 
       let isOnline = false
-      for (const skey of Object.keys(sims)) {
-        const sLower = skey.toLowerCase()
-        if (did === skey || didLower === sLower ||
-            sLower.includes(didLower) || didLower.includes(sLower)) {
-          isOnline = (sims[skey].status === 'running')
-          break
-        }
+      if (simInfo) {
+        isOnline = (simInfo.status === 'online')
       }
 
       this.setData({

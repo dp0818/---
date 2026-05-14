@@ -60,21 +60,14 @@ Page({
     wx.showLoading({ title: '加载中...', mask: true })
 
     try {
-      let statusRes = null
-      try {
-        statusRes = await api.getSimulatorStatus()
-        console.log('[Status] /api/status 返回:', JSON.stringify(statusRes))
-      } catch (e) {
-        console.warn('[Status] 获取模拟器状态失败:', e)
-        const errMsg = (e && e.errMsg) || (e && e.message) || String(e)
-        this.setData({ statusError: '状态检测失败: ' + errMsg })
-      }
-
-      const [deviceRes, favRes] = await Promise.all([
+      const [deviceRes, favRes, statusRes] = await Promise.all([
         api.getDeviceList(open_id),
-        api.getFavoriteList(open_id)
+        api.getFavoriteList(open_id),
+        api.getSimulatorStatus().catch(e => {
+          console.warn('[Status] 获取模拟器状态失败:', e)
+          return null
+        })
       ])
-
       let deviceList = deviceRes.data || []
       const favoriteList = favRes.data || []
       const favIds = new Set(favoriteList.map(f => f.device_id))
@@ -83,7 +76,7 @@ Page({
       if (statusRes && statusRes.data && statusRes.data.simulators) {
         Object.keys(statusRes.data.simulators).forEach(key => {
           const sim = statusRes.data.simulators[key]
-          simStatusMap[key] = sim.status || 'offline'
+          simStatusMap[key] = sim
         })
       }
 
@@ -114,21 +107,14 @@ Page({
         else if (aqi > 100) { aqiClass = 'aqi-mild'; levelText = '轻度' }
         else if (aqi > 50) { aqiClass = 'aqi-good'; levelText = '良' }
 
-        let status = d.status || 0
         const did = d.device_id || ''
-        if (Object.keys(simStatusMap).length > 0) {
-          const didLower = did.toLowerCase()
-          for (const skey of Object.keys(simStatusMap)) {
-            const sLower = skey.toLowerCase()
-            if (did === skey || didLower === sLower ||
-                sLower.includes(didLower) || didLower.includes(sLower)) {
-              status = (simStatusMap[skey] === 'running') ? 1 : 0
-              break
-            }
-          }
+        const simInfo = simStatusMap[did]
+        let isOnline = false
+        if (simInfo) {
+          isOnline = (simInfo.status === 'online')
         }
 
-        return { ...d, aqiClass, levelText, latestAqi: aqi, status, roomIcons, roomNames }
+        return { ...d, aqiClass, levelText, latestAqi: aqi, status: isOnline ? 1 : 0, roomIcons, roomNames }
       })
 
       // 收藏设备取完整信息（从全部设备列表中匹配）

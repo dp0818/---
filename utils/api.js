@@ -143,7 +143,7 @@ function getFavoriteList(open_id) {
 }
 
 // ==================== 5. 运维监控（可选） ====================
-// GET /api/status → { total, online, offline, simulators: { "CQ_001": {"status":"running",...}, ... } }
+// GET /api/status → { total, online, offline, simulators: { "CQ_001": {"status":"online",...}, ... } }
 function getSimulatorStatus() {
   return new Promise((resolve, reject) => {
     wx.request({
