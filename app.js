@@ -2,7 +2,7 @@
  * 全局应用实例
  * - onLaunch:  检查登录状态，自动跳转
  * - globalData: open_id、当前设备等全局数据
- * - request:   统一封装的网络请求（loading + 错误处理）
+ * - request:   统一封装的网络请求（loading + 错误处理
  */
 App({
   globalData: {
