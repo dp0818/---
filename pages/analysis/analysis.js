@@ -109,9 +109,9 @@ Page({
    */
   loadDailySummary() {
     const today = this.formatDate(new Date())
-    return api.getDailySummary(today).then(res => {
+    return api.getDailySummary(today, this.data.currentDeviceId).then(res => {
+      console.log('[每日统计] 原始返回:', JSON.stringify(res))
       const dataList = res.data || []
-      // 找到当前设备的统计数据
       const stat = dataList.find(d => d.device_id === this.data.currentDeviceId)
       if (stat) {
         this.setData({
@@ -127,7 +127,9 @@ Page({
           summary: { avgAqi: '--', maxAqi: '--', avgPm25: '--', date: today }
         })
       }
-    }).catch(() => {})
+    }).catch(() => {
+      wx.showToast({ title: '获取统计数据失败', icon: 'none' })
+    })
   },
 
   /**

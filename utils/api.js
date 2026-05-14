@@ -93,12 +93,12 @@ function getHistoryData(device_id, hours) {
   })
 }
 
-function getDailySummary(date) {
+function getDailySummary(date, device_id) {
   return new Promise((resolve, reject) => {
     app.request({
       url: '/api/daily_summary',
       method: 'GET',
-      data: { date },
+      data: { date, device_id },
       success: resolve,
       fail: reject
     })
