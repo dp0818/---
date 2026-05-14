@@ -1,0 +1,88 @@
+<view class="page-container">
+  <!-- 设备头部卡片 -->
+  <view class="detail-header-card">
+    <view class="detail-header-top">
+      <view class="detail-header-left">
+        <view class="detail-device-icon">📡</view>
+        <view>
+          <view class="detail-device-name">{{deviceName}}</view>
+          <view class="detail-device-id">ID: {{deviceId}}</view>
+        </view>
+      </view>
+      <view class="favorite-btn" bindtap="handleToggleFavorite">
+        <text class="favorite-star {{isFavorite ? 'is-favorited' : ''}}">{{isFavorite ? '⭐' : '☆'}}</text>
+        <text class="favorite-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
+      </view>
+    </view>
+    <view class="detail-status-row">
+      <view class="status-tag {{status === 1 ? 'status-online' : 'status-offline'}}">
+        <view class="status-dot {{status === 1 ? 'online' : 'offline'}}"></view>
+        {{status === 1 ? '在线' : '离线'}}
+      </view>
+      <view wx:if="{{isActive}}" class="badge-active">当前活跃</view>
+      <view wx:if="{{battery}}" class="battery-tag">🔋 {{battery}}%</view>
+    </view>
+  </view>
+
+  <!-- 位置信息 -->
+  <view class="detail-card">
+    <view class="detail-section-title">📍 位置信息</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <view class="info-label">经度</view>
+        <view class="info-value">{{longitude || '未设置'}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">纬度</view>
+        <view class="info-value">{{latitude || '未设置'}}</view>
+      </view>
+    </view>
+    <button class="btn-action btn-action-location" bindtap="handleUpdateLocation" loading="{{updatingLocation}}">
+      📍 更新位置
+    </button>
+  </view>
+
+  <!-- 告警设置 -->
+  <view class="detail-card">
+    <view class="detail-section-title">🔔 告警设置</view>
+    <view class="alert-row">
+      <view class="alert-item">
+        <view class="alert-value">{{pm25Limit}}</view>
+        <view class="alert-unit">PM2.5 上限 (μg/m³)</view>
+      </view>
+      <view class="alert-divider"></view>
+      <view class="alert-item">
+        <view class="alert-value">{{aqiLimit}}</view>
+        <view class="alert-unit">AQI 上限</view>
+      </view>
+    </view>
+    <button class="btn-action btn-action-default" bindtap="handleModifyAlert">
+      ✏️ 修改告警阈值
+    </button>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-area">
+    <button class="action-btn action-btn-primary" bindtap="goToData">📊 查看实时数据</button>
+    <button class="action-btn action-btn-danger" bindtap="handleUnbind">🗑️ 解绑此设备</button>
+  </view>
+
+  <!-- 修改告警弹窗 -->
+  <view wx:if="{{showAlertModal}}" class="modal-mask" bindtap="closeAlertModal">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-title">修改告警阈值</view>
+      <view class="modal-field">
+        <text class="field-label">PM2.5 上限 (μg/m³)</text>
+        <input class="field-input" type="digit" value="{{pm25Input}}" bindinput="onPm25Input" placeholder="请输入PM2.5上限"/>
+      </view>
+      <view class="modal-field">
+        <text class="field-label">AQI 上限</text>
+        <input class="field-input" type="digit" value="{{aqiInput}}" bindinput="onAqiInput" placeholder="请输入AQI上限"/>
+      </view>
+      <view class="modal-btns">
+        <button class="modal-btn modal-btn-cancel" bindtap="closeAlertModal">取消</button>
+        <button class="modal-btn modal-btn-confirm" bindtap="saveAlertSettings">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

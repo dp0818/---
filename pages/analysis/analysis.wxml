@@ -1,0 +1,98 @@
+<view class="page-container">
+  <!-- 顶部设备切换栏 -->
+  <view class="analysis-header">
+    <view class="device-bar" bindtap="handleSwitchDevice">
+      <view class="device-bar-inner">
+        <view class="device-info">
+          <view class="device-icon">📡</view>
+          <view>
+            <view class="device-name">{{currentDeviceName || '请选择设备'}}</view>
+          </view>
+        </view>
+        <view class="device-arrow">›</view>
+      </view>
+    </view>
+    <view class="time-tabs">
+      <view wx:for="{{timeOptions}}" wx:key="value"
+        class="time-tab {{hours === item.value ? 'time-tab-active' : ''}}"
+        bindtap="switchHours" data-hours="{{item.value}}">{{item.label}}</view>
+    </view>
+  </view>
+
+  <!-- 无设备空状态 -->
+  <view wx:if="{{!currentDeviceId}}" class="empty-state">
+    <view class="empty-icon">📊</view>
+    <view class="empty-text">请先选择设备</view>
+  </view>
+
+  <block wx:else>
+    <!-- 今日统计三卡片 -->
+    <view class="summary-row">
+      <view class="summary-card" style="background:linear-gradient(135deg,#4CAF50,#66BB6A);">
+        <view class="summary-label">平均 AQI</view>
+        <view class="summary-value">{{summary.avgAqi}}</view>
+        <view class="summary-desc">{{summary.date}}</view>
+      </view>
+      <view class="summary-card" style="background:linear-gradient(135deg,#FF9800,#FFA726);">
+        <view class="summary-label">最高 AQI</view>
+        <view class="summary-value">{{summary.maxAqi}}</view>
+        <view class="summary-desc">今日峰值</view>
+      </view>
+      <view class="summary-card" style="background:linear-gradient(135deg,#2196F3,#42A5F5);">
+        <view class="summary-label">平均 PM2.5</view>
+        <view class="summary-value">{{summary.avgPm25}}</view>
+        <view class="summary-desc">μg/m³</view>
+      </view>
+    </view>
+
+    <!-- 历史数据 -->
+    <view class="card history-card">
+      <view class="section-title">
+        <text>📈 历史数据</text>
+        <text class="section-badge">最近{{hours}}小时</text>
+      </view>
+
+      <view wx:if="{{historyList.length === 0}}" class="empty-mini">暂无历史数据</view>
+
+      <view wx:else class="history-table">
+        <!-- 表头 -->
+        <view class="table-header">
+          <view class="col-time">时间</view>
+          <view class="col-aqi">AQI</view>
+          <view class="col-pm">PM2.5</view>
+          <view class="col-pm">PM10</view>
+        </view>
+        <!-- 数据行 -->
+        <view wx:for="{{historyList}}" wx:key="sample_time" class="table-row {{item.aqiClass}}">
+          <view class="col-time">{{item.timeStr}}</view>
+          <view class="col-aqi">
+            <view class="aqi-dot {{item.levelClass}}"></view>
+            {{item.aqi}}
+          </view>
+          <view class="col-pm">{{item.pm2_5 || '--'}}</view>
+          <view class="col-pm">{{item.pm10 || '--'}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 设备选择弹窗 -->
+  <view wx:if="{{showDevicePicker}}" class="picker-mask" bindtap="closePicker">
+    <view class="picker-content" catchtap="noop">
+      <view class="picker-title">选择设备</view>
+      <scroll-view scroll-y class="picker-list">
+        <view wx:for="{{deviceList}}" wx:key="device_id"
+          class="picker-item {{item.device_id === currentDeviceId ? 'picker-item-active' : ''}}"
+          bindtap="selectDevice" data-index="{{index}}">
+          <view class="picker-item-left">
+            <view class="picker-dot {{item.status === 1 ? 'dot-online' : 'dot-offline'}}"></view>
+            <text>{{item.device_name || item.device_id}}</text>
+          </view>
+          <text wx:if="{{item.device_id === currentDeviceId}}" class="check-mark">✓</text>
+        </view>
+        <view wx:if="{{deviceList.length === 0}}" class="picker-empty">暂无设备</view>
+      </scroll-view>
+      <view class="picker-close" bindtap="closePicker">取消</view>
+    </view>
+  </view>
+</view>

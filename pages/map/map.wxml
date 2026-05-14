@@ -1,0 +1,28 @@
+<view class="map-container">
+  <map id="deviceMap" class="device-map"
+    latitude="{{centerLat}}" longitude="{{centerLng}}"
+    scale="{{scale}}" markers="{{markers}}" show-location="{{true}}"
+    bindmarkertap="onMarkerTap">
+  </map>
+
+  <!-- 空状态 -->
+  <view wx:if="{{deviceList.length === 0}}" class="empty-overlay">
+    <view class="empty-icon">🗺️</view>
+    <view class="empty-text">暂无绑定设备</view>
+  </view>
+
+  <!-- 底部设备列表 -->
+  <scroll-view wx:if="{{deviceList.length > 0}}" scroll-x class="bottom-bar">
+    <view wx:for="{{deviceList}}" wx:key="device_id"
+      class="bar-item {{item.device_id === selectedDeviceId ? 'bar-item-active' : ''}}"
+      bindtap="onBarItemTap" data-index="{{index}}">
+      <view class="bar-item-inner">
+        <view class="bar-name">{{item.device_name || item.device_id}}</view>
+        <view class="bar-bottom">
+          <view class="bar-aqi {{item.aqiClass}}">{{item.latestAqi || '--'}}</view>
+          <view class="bar-level {{item.aqiClass}}">{{item.levelText || '未知'}}</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,73 @@
+/* ===== 地图页 ===== */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+/* 地图占满 */
+.device-map { width: 100%; height: 100%; }
+
+/* ===== 底部设备横条 ===== */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150rpx;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20rpx);
+  white-space: nowrap;
+  display: flex;
+  flex-direction: row;
+  box-shadow: 0 -4rpx 24rpx rgba(0,0,0,0.08);
+  padding: 16rpx 0 20rpx;
+}
+.bar-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 180rpx;
+  height: 100%;
+  margin-left: 16rpx;
+  border-radius: 16rpx;
+  background: #F0F4F3;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.bar-item-active {
+  background: #F0FDF4;
+  border: 2rpx solid #4CAF50;
+}
+.bar-item-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.bar-name {
+  font-size: 24rpx; color: #1A2332; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 150rpx;
+}
+.bar-bottom { display: flex; align-items: center; gap: 8rpx; margin-top: 6rpx; }
+.bar-aqi {
+  font-size: 32rpx; font-weight: 700;
+}
+.bar-level { font-size: 18rpx; }
+
+/* ===== 空状态 ===== */
+.empty-overlay {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.95);
+  padding: 48rpx 60rpx;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.1);
+}
+.empty-overlay .empty-icon { font-size: 64rpx; margin-bottom: 16rpx; }
+.empty-overlay .empty-text { font-size: 28rpx; color: #94A3B8; }
