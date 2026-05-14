@@ -1,0 +1,31 @@
+<!-- 登录页 -->
+<view class="login-container">
+  <!-- 顶部装饰 -->
+  <view class="decoration">
+    <view class="deco-circle deco-1"></view>
+    <view class="deco-circle deco-2"></view>
+    <view class="deco-circle deco-3"></view>
+  </view>
+
+  <!-- 品牌展示 -->
+  <view class="brand-area">
+    <view class="brand-icon-wrap">
+      <view class="brand-icon">🌿</view>
+    </view>
+    <view class="brand-title">城市空气质量检测</view>
+    <view class="brand-subtitle">实时监测 · 智能分析 · 守护呼吸健康</view>
+  </view>
+
+  <!-- 登录按钮 -->
+  <view class="login-area">
+    <button class="login-btn" bindtap="handleLogin" loading="{{loading}}">
+      微信一键登录
+    </button>
+    <view class="login-tips">
+      <view class="tip-item">✓ 实时空气质量查询</view>
+      <view class="tip-item">✓ 历史数据分析</view>
+      <view class="tip-item">✓ 告警阈值提醒</view>
+    </view>
+    <view class="agreement-text">登录即代表同意《用户协议》</view>
+  </view>
+</view>
