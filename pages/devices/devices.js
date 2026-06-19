@@ -13,14 +13,34 @@ Page({
     deviceList: [],     // 全部设备
     favoriteList: [],   // 收藏的设备
     favDeviceIds: new Set(),  // 收藏设备ID集合，用于快速判断
-    showDialog: false,  // 手动输入弹窗
+    showDialog: false,  // 手动输入弹窗（步骤1）
     inputDeviceId: '',   // 输入的设备ID
-    showRoomPicker: false, // 房间选择弹窗
+    inputDeviceName: '', // 输入的设备名称
+    showDetailDialog: false, // 手动输入弹窗（步骤2）
+    showRoomPicker: false, // 房间选择弹窗（扫码流程）
     selectedRoom: 'living_room', // 默认客厅
     selectedRoomLabel: '客厅', // 当前选中房间的显示标签
     selectedRoomIcon: '🛋️',
     pendingDeviceId: '',  // 待绑定的设备ID
     statusError: '',      // 状态检测错误信息
+
+    // 行政区划
+    regionList: [],
+    regionProvinceIndex: -1,
+    regionProvinceName: '',
+    regionCityOptions: [],
+    regionCityIndex: -1,
+    regionCityName: '',
+    regionDistrictOptions: [],
+    regionDistrictIndex: -1,
+    regionDistrictName: '',
+
+    // 用户类型 + 行业
+    customerType: 'individual',
+    industryOptions: ['办公', '工厂', '酒店', '学校', '商业', '医疗', '餐饮', '其他'],
+    industryIndex: 0,
+    industryName: '办公',
+
     roomOptions: [
       { value: 'living_room', label: '客厅', icon: '🛋️' },
       { value: 'kitchen', label: '厨房', icon: '🍳' },
@@ -181,18 +201,138 @@ Page({
     this.setData({ inputDeviceId: e.detail.value })
   },
 
+  onNameChange(e) {
+    this.setData({ inputDeviceName: e.detail.value })
+  },
+
   handleManualBind() {
     const deviceId = this.data.inputDeviceId.trim()
+    const deviceName = this.data.inputDeviceName.trim()
     if (!deviceId) {
       wx.showToast({ title: '请输入设备ID', icon: 'none' })
+      return
+    }
+    if (!deviceName) {
+      wx.showToast({ title: '请输入设备名称', icon: 'none' })
       return
     }
     this.setData({
       showDialog: false,
       pendingDeviceId: deviceId,
-      showRoomPicker: true,
-      selectedRoom: 'living_room',
-      selectedRoomLabel: '客厅'
+      showDetailDialog: true
+    })
+    if (this.data.regionList.length === 0) {
+      this.loadRegions()
+    }
+  },
+
+  hideDetailDialog() {
+    this.setData({ showDetailDialog: false, pendingDeviceId: '' })
+  },
+
+  async loadRegions() {
+    try {
+      const res = await api.getRegions()
+      const list = (res.data && res.data.regions) || []
+      const flat = list.map(r => ({
+        name: r.province,
+        cities: r.cities.map(c => ({ name: c.city, districts: (c.districts || []).map(d => ({ name: d })) }))
+      }))
+      this.setData({ regionList: flat })
+    } catch (e) {
+      console.warn('[Regions] 加载失败:', e)
+    }
+  },
+
+  onRegionProvinceChange(e) {
+    const idx = parseInt(e.detail.value)
+    const province = this.data.regionList[idx]
+    if (!province) return
+    this.setData({
+      regionProvinceIndex: idx,
+      regionProvinceName: province.name,
+      regionCityIndex: 0,
+      regionCityName: '',
+      regionDistrictIndex: 0,
+      regionDistrictName: '',
+      regionCityOptions: province.cities || [],
+      regionDistrictOptions: []
+    })
+  },
+
+  onRegionCityChange(e) {
+    const idx = parseInt(e.detail.value)
+    const city = this.data.regionCityOptions[idx]
+    if (!city) return
+    this.setData({
+      regionCityIndex: idx,
+      regionCityName: city.name,
+      regionDistrictIndex: 0,
+      regionDistrictName: ''
+    })
+    this.setData({ regionDistrictOptions: city.districts || [] })
+  },
+
+  onRegionDistrictChange(e) {
+    const idx = parseInt(e.detail.value)
+    const district = this.data.regionDistrictOptions[idx]
+    if (!district) return
+    this.setData({ regionDistrictIndex: idx, regionDistrictName: district.name })
+  },
+
+  onCustomerTypeChange(e) {
+    const t = e.currentTarget.dataset.type
+    this.setData({ customerType: t })
+  },
+
+  onIndustryChange(e) {
+    const idx = parseInt(e.detail.value)
+    this.setData({
+      industryIndex: idx,
+      industryName: this.data.industryOptions[idx]
+    })
+  },
+
+  confirmDetailBind() {
+    const open_id = app.globalData.open_id
+    const deviceId = this.data.pendingDeviceId
+    if (!deviceId) return
+
+    if (this.data.customerType === 'enterprise' && !this.data.industryName) {
+      wx.showToast({ title: '请选择行业', icon: 'none' })
+      return
+    }
+
+    wx.showLoading({ title: '绑定中...', mask: true })
+    api.bindDevice(
+      open_id,
+      deviceId,
+      this.data.selectedRoom,
+      {
+        device_name: this.data.inputDeviceName.trim(),
+        province: this.data.regionProvinceName,
+        city: this.data.regionCityName,
+        district: this.data.regionDistrictName,
+        customer_type: this.data.customerType,
+        industry: this.data.customerType === 'enterprise' ? this.data.industryName : ''
+      }
+    ).then(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '绑定成功', icon: 'success' })
+      this.setData({
+        showDetailDialog: false,
+        pendingDeviceId: '',
+        inputDeviceId: '',
+        inputDeviceName: '',
+        regionProvinceName: '',
+        regionCityName: '',
+        regionDistrictName: '',
+        customerType: 'individual'
+      })
+      this.loadAll()
+    }).catch(() => {
+      wx.hideLoading()
+      this.setData({ showDetailDialog: false, pendingDeviceId: '' })
     })
   },
 

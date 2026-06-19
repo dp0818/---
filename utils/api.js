@@ -20,12 +20,15 @@ function login(code) {
 }
 
 // ==================== 2. 设备管理 ====================
-function bindDevice(open_id, device_id, room_location) {
+function bindDevice(open_id, device_id, room_location, extra) {
   return new Promise((resolve, reject) => {
     app.request({
       url: '/api/devices/bind',
       method: 'POST',
-      data: { open_id, device_id, room_location: room_location || 'living_room' },
+      data: Object.assign(
+        { open_id, device_id, room_location: room_location || 'living_room' },
+        extra || {}
+      ),
       success: resolve,
       fail: reject
     })
@@ -164,6 +167,20 @@ function getSimulatorStatus() {
   })
 }
 
+// ==================== 4b. 行政区划 ====================
+// GET /api/regions → { regions: [{province, cities: [{city, districts: [...]}]}] }
+function getRegions() {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/regions',
+      method: 'GET',
+      showLoading: false,
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
 // ==================== 6. 告警管理 ====================
 function getAlertSettings(open_id, device_id) {
   return new Promise((resolve, reject) => {
@@ -215,6 +232,7 @@ module.exports = {
   removeFavorite,
   getFavoriteList,
   getSimulatorStatus,
+  getRegions,
   getAlertSettings,
   setAlertSettings,
   aiAnalyze

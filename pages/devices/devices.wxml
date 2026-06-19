@@ -94,17 +94,28 @@
 
   <view style="height: 60rpx;"></view>
 
-  <!-- 手动输入弹窗 -->
+  <!-- 手动输入弹窗（步骤1：设备ID + 名称）-->
   <view wx:if="{{showDialog}}" class="dialog-overlay" bindtap="hideInputDialog">
     <view class="dialog-box animate-scale-in" catchtap="stopPropagation">
       <view class="dialog-icon-wrap">
         <view class="dialog-icon">🔗</view>
       </view>
       <view class="dialog-title">绑定设备</view>
-      <view class="dialog-subtitle">输入设备ID进行绑定</view>
-      <input class="dialog-input" placeholder="请输入设备ID" maxlength="50"
-        value="{{inputDeviceId}}" bindinput="onInputChange" focus
-        placeholder-class="dialog-input-placeholder"/>
+      <view class="dialog-subtitle">输入设备ID和名称</view>
+
+      <view class="form-row">
+        <text class="form-label">设备ID</text>
+        <input class="form-input" placeholder="如 CQ_001" maxlength="50"
+          value="{{inputDeviceId}}" bindinput="onInputChange" focus
+          placeholder-class="form-input-placeholder"/>
+      </view>
+      <view class="form-row">
+        <text class="form-label">设备名称</text>
+        <input class="form-input" placeholder="如 办公室监测仪" maxlength="50"
+          value="{{inputDeviceName}}" bindinput="onNameChange"
+          placeholder-class="form-input-placeholder"/>
+      </view>
+
       <view class="dialog-btns">
         <view class="dialog-btn dialog-btn-cancel" bindtap="hideInputDialog">取消</view>
         <view class="dialog-btn dialog-btn-confirm" bindtap="handleManualBind">下一步</view>
@@ -112,7 +123,84 @@
     </view>
   </view>
 
-  <!-- 房间选择弹窗 -->
+  <!-- 手动输入弹窗（步骤2：行政区划 + 用户类型 + 房间）-->
+  <view wx:if="{{showDetailDialog}}" class="dialog-overlay" bindtap="hideDetailDialog">
+    <view class="dialog-box animate-scale-in" catchtap="stopPropagation">
+      <view class="dialog-icon-wrap" style="background: linear-gradient(135deg, #2196F3, #42A5F5);">
+        <view class="dialog-icon">🏠</view>
+      </view>
+      <view class="dialog-title">设备信息</view>
+      <view class="dialog-subtitle">完善位置和类型信息</view>
+
+      <!-- 行政区划 -->
+      <view class="form-row">
+        <text class="form-label">省/市/区</text>
+        <view class="region-picker-row">
+          <picker mode="selector" range="{{regionList}}" range-key="name" value="{{regionProvinceIndex}}" bindchange="onRegionProvinceChange">
+            <view class="region-pick">
+              <text class="region-pick-text">{{regionProvinceName || '选择省'}}</text>
+              <text class="region-pick-arrow">▾</text>
+            </view>
+          </picker>
+          <picker mode="selector" range="{{regionCityOptions}}" range-key="name" value="{{regionCityIndex}}" bindchange="onRegionCityChange" wx:if="{{regionCityOptions.length > 0}}">
+            <view class="region-pick">
+              <text class="region-pick-text">{{regionCityName || '选择市'}}</text>
+              <text class="region-pick-arrow">▾</text>
+            </view>
+          </picker>
+          <picker mode="selector" range="{{regionDistrictOptions}}" range-key="name" value="{{regionDistrictIndex}}" bindchange="onRegionDistrictChange" wx:if="{{regionDistrictOptions.length > 0}}">
+            <view class="region-pick">
+              <text class="region-pick-text">{{regionDistrictName || '选择区'}}</text>
+              <text class="region-pick-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 用户类型 -->
+      <view class="form-row">
+        <text class="form-label">用户类型</text>
+        <view class="type-tabs">
+          <view class="type-tab {{customerType === 'individual' ? 'active' : ''}}"
+            bindtap="onCustomerTypeChange" data-type="individual">个人</view>
+          <view class="type-tab {{customerType === 'enterprise' ? 'active' : ''}}"
+            bindtap="onCustomerTypeChange" data-type="enterprise">企业</view>
+        </view>
+      </view>
+
+      <!-- 行业（仅企业显示）-->
+      <view class="form-row" wx:if="{{customerType === 'enterprise'}}">
+        <text class="form-label">行业</text>
+        <picker mode="selector" range="{{industryOptions}}" value="{{industryIndex}}" bindchange="onIndustryChange">
+          <view class="region-pick">
+            <text class="region-pick-text">{{industryName || '选择行业'}}</text>
+            <text class="region-pick-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 房间位置 -->
+      <view class="form-row">
+        <text class="form-label">房间位置</text>
+        <picker mode="selector" range="{{roomOptions}}" range-key="label" value="0" bindchange="onRoomChange">
+          <view class="region-pick">
+            <text class="region-pick-text">
+              <text class="room-pick-icon">{{selectedRoomIcon}}</text>
+              <text>{{selectedRoomLabel}}</text>
+            </text>
+            <text class="region-pick-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="dialog-btns">
+        <view class="dialog-btn dialog-btn-cancel" bindtap="hideDetailDialog">取消</view>
+        <view class="dialog-btn dialog-btn-confirm" bindtap="confirmDetailBind">确认绑定</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 房间选择弹窗（扫码绑定流程使用）-->
   <view wx:if="{{showRoomPicker}}" class="dialog-overlay" bindtap="hideRoomPicker">
     <view class="dialog-box animate-scale-in" catchtap="stopPropagation">
       <view class="dialog-icon-wrap" style="background: linear-gradient(135deg, #2196F3, #42A5F5);">

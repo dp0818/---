@@ -9,7 +9,7 @@
     </view>
   </view>
 
-  <view class="rooms-grid-wrapper">
+  <view class="rooms-grid-wrapper" wx:if="{{deviceList.length > 0}}">
 
     <view class="rooms-grid {{zoomedRoom ? 'zoomed' : ''}}"
       style="transform: translateX({{panX}}rpx) translateY({{panY}}rpx) scale({{zoomScale}});
@@ -105,7 +105,7 @@
   </view>
 
   <!-- 房间详情面板 -->
-  <view class="room-detail-panel {{selectedRoom ? 'panel-open' : ''}}">
+  <view class="room-detail-panel {{selectedRoom ? 'panel-open' : ''}}" wx:if="{{deviceList.length > 0}}">
     <view class="panel-drag-bar" bindtap="closeRoomPanel">
       <view class="drag-indicator"></view>
     </view>

@@ -9,7 +9,7 @@ App({
     open_id: '',
     currentDeviceId: '',
     currentDeviceName: '',
-    baseUrl: 'http://47.109.191.13:5000'
+    baseUrl: 'https://47.109.191.13'
   },
 
   onLaunch() {
