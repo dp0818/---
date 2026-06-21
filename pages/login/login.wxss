@@ -3,12 +3,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(160deg, #F5F7FA 0%, #FFFFFF 40%, #F0F4F8 100%);
-  padding: 0 60rpx;
+  padding: 60rpx 60rpx 60rpx;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 /* ===== 装饰圆 ===== */
@@ -40,39 +40,147 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 80rpx;
+  margin-bottom: 40rpx;
   position: relative;
   z-index: 1;
 }
 .brand-icon-wrap {
-  width: 160rpx; height: 160rpx;
+  width: 120rpx; height: 120rpx;
   background: linear-gradient(135deg, #4CAF50, #43A047);
-  border-radius: 48rpx;
+  border-radius: 36rpx;
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 32rpx;
-  box-shadow: 0 8rpx 40rpx rgba(76, 175, 80, 0.25);
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(76, 175, 80, 0.25);
   position: relative;
   overflow: hidden;
 }
 .brand-icon-wrap::before {
   content: '';
   position: absolute;
-  top: -20rpx;
-  right: -20rpx;
-  width: 80rpx;
-  height: 80rpx;
+  top: -20rpx; right: -20rpx;
+  width: 60rpx; height: 60rpx;
   background: rgba(255,255,255,0.15);
   border-radius: 50%;
   filter: blur(10rpx);
 }
-.brand-icon { font-size: 72rpx; position: relative; }
+.brand-icon { font-size: 50rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx; position: relative; }
 .brand-title {
-  font-size: 44rpx; font-weight: 700; color: #2C3E50;
-  margin-bottom: 16rpx;
+  font-size: 38rpx; font-weight: 700; color: #2C3E50;
+  margin-bottom: 12rpx;
   letter-spacing: 2rpx;
 }
 .brand-subtitle {
-  font-size: 26rpx; color: #95A5A6;
+  font-size: 24rpx; color: #95A5A6;
+}
+
+/* ===== 资料卡片 ===== */
+.profile-card {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  padding: 36rpx 36rpx 28rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.06);
+  margin-bottom: 32rpx;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+}
+.card-title {
+  font-size: 30rpx; font-weight: 600; color: #2C3E50;
+  text-align: center;
+  margin-bottom: 8rpx;
+}
+.card-subtitle {
+  font-size: 22rpx; color: #95A5A6;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+  padding: 16rpx 0;
+}
+.avatar-btn {
+  width: 140rpx; height: 140rpx;
+  border-radius: 50%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 4rpx solid #E8F5E9;
+  position: relative;
+  overflow: hidden;
+  line-height: 1;
+}
+.avatar-btn::after { border: none; }
+.avatar-img {
+  width: 100%; height: 100%;
+  display: block;
+}
+.avatar-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80rpx; font-weight: 200; color: #B0BEC5;
+  background: #F5F7FA;
+}
+.avatar-mask {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 18rpx;
+  text-align: center;
+  padding: 4rpx 0;
+}
+.avatar-tip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+.tip-line {
+  font-size: 24rpx;
+  color: #607D8B;
+}
+
+.nickname-row {
+  display: flex;
+  align-items: center;
+  background: #F5F7FA;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  height: 88rpx;
+  margin-bottom: 20rpx;
+}
+.row-label {
+  font-size: 26rpx;
+  color: #607D8B;
+  width: 96rpx;
+  flex-shrink: 0;
+}
+.nickname-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #2C3E50;
+  background: transparent;
+  height: 88rpx;
+}
+
+.tips-row {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+.tips-row .tip-item {
+  font-size: 20rpx;
+  color: #95A5A6;
+  background: #F5F7FA;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
 }
 
 /* ===== 登录区域 ===== */
@@ -98,28 +206,18 @@
   border: none;
   transition: all 0.3s ease;
 }
+.login-btn.disabled {
+  background: #C5D6CB;
+  color: #FFFFFF;
+  box-shadow: none;
+}
 .login-btn:active {
   opacity: 0.9;
   transform: scale(0.98);
 }
-.login-tips {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 32rpx;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.tip-item {
-  font-size: 22rpx;
-  color: #95A5A6;
-  background: #FFFFFF;
-  border: 1rpx solid #E8ECF0;
-  padding: 8rpx 20rpx;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
-}
 .agreement-text {
   font-size: 22rpx;
   color: #BDC3C7;
-  margin-top: 32rpx;
+  margin-top: 24rpx;
+  text-align: center;
 }

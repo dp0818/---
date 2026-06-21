@@ -7,12 +7,43 @@
 const app = getApp()
 
 // ==================== 1. 用户登录 ====================
-function login(code) {
+function login(code, profile) {
   return new Promise((resolve, reject) => {
+    const data = { code }
+    if (profile) {
+      if (profile.nickname) data.nickname = profile.nickname
+      if (profile.avatar_url) data.avatar_url = profile.avatar_url
+      if (profile.gender !== undefined && profile.gender !== null) data.gender = profile.gender
+    }
     app.request({
       url: '/api/login',
       method: 'POST',
-      data: { code },
+      data,
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
+// ==================== 1b. 更新个人资料 ====================
+function updateProfile(open_id, profile) {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/user/profile',
+      method: 'POST',
+      data: Object.assign({ open_id }, profile || {}),
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
+function getUserProfile(open_id) {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/user/profile',
+      method: 'POST',
+      data: { open_id, _query: true },
       success: resolve,
       fail: reject
     })
@@ -221,6 +252,8 @@ function aiAnalyze(device_id, hours) {
 
 module.exports = {
   login,
+  updateProfile,
+  getUserProfile,
   bindDevice,
   unbindDevice,
   getDeviceList,

@@ -10,22 +10,63 @@
   <!-- 品牌展示 -->
   <view class="brand-area">
     <view class="brand-icon-wrap">
-      <view class="brand-icon">🌿</view>
+      <view class="brand-icon">AQ</view>
     </view>
     <view class="brand-title">城市空气质量检测</view>
     <view class="brand-subtitle">实时监测 · 智能分析 · 守护呼吸健康</view>
   </view>
 
+  <!-- 资料填写卡片 -->
+  <view class="profile-card">
+    <view class="card-title">完善资料后开始使用</view>
+    <view class="card-subtitle">微信一键获取头像与昵称，信息仅用于本应用</view>
+
+    <view class="avatar-row">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <block wx:if="{{avatarUrl}}">
+          <image class="avatar-img" src="{{avatarUrl}}" mode="aspectFill"></image>
+        </block>
+        <block wx:else>
+          <view class="avatar-placeholder">+</view>
+        </block>
+        <view class="avatar-mask">点击选择</view>
+      </button>
+      <view class="avatar-tip">
+        <view class="tip-line">点击左侧按钮</view>
+        <view class="tip-line">选择微信头像</view>
+      </view>
+    </view>
+
+    <view class="nickname-row">
+      <view class="row-label">昵称</view>
+      <input
+        class="nickname-input"
+        type="nickname"
+        placeholder="请输入昵称（可从微信自动填写）"
+        value="{{nickname}}"
+        bindinput="onNicknameInput"
+        bindblur="onNicknameBlur"
+        maxlength="20"
+      />
+    </view>
+
+    <view class="tips-row">
+      <view class="tip-item">实时空气质量查询</view>
+      <view class="tip-item">历史数据分析</view>
+      <view class="tip-item">告警阈值提醒</view>
+    </view>
+  </view>
+
   <!-- 登录按钮 -->
   <view class="login-area">
-    <button class="login-btn" bindtap="handleLogin" loading="{{loading}}">
-      微信一键登录
+    <button
+      class="login-btn {{canSubmit ? '' : 'disabled'}}"
+      bindtap="handleLogin"
+      loading="{{loading}}"
+      disabled="{{!canSubmit || loading}}"
+    >
+      {{canSubmit ? '完成并登录' : '请先完善资料'}}
     </button>
-    <view class="login-tips">
-      <view class="tip-item">✓ 实时空气质量查询</view>
-      <view class="tip-item">✓ 历史数据分析</view>
-      <view class="tip-item">✓ 告警阈值提醒</view>
-    </view>
-    <view class="agreement-text">登录即代表同意《用户协议》</view>
+    <view class="agreement-text">登录即代表同意《用户协议》与《隐私政策》</view>
   </view>
 </view>

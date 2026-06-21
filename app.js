@@ -9,15 +9,21 @@ App({
     open_id: '',
     currentDeviceId: '',
     currentDeviceName: '',
+    userProfile: null,
     baseUrl: 'https://47.109.191.13'
   },
 
   onLaunch() {
-    // 启动时从本地缓存恢复登录态
     const open_id = wx.getStorageSync('open_id')
-    if (open_id) {
-      this.globalData.open_id = open_id
-    }
+    const profile = wx.getStorageSync('user_profile')
+    if (open_id) this.globalData.open_id = open_id
+    if (profile) this.globalData.userProfile = profile
+  },
+
+  setUserProfile(profile) {
+    this.globalData.userProfile = profile
+    if (profile) wx.setStorageSync('user_profile', profile)
+    else wx.removeStorageSync('user_profile')
   },
 
   /**
