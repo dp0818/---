@@ -22,15 +22,17 @@
     <view class="card-subtitle">微信一键获取头像与昵称，信息仅用于本应用</view>
 
     <view class="avatar-row">
-      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-        <block wx:if="{{avatarUrl}}">
-          <image class="avatar-img" src="{{avatarUrl}}" mode="aspectFill"></image>
-        </block>
-        <block wx:else>
-          <view class="avatar-placeholder">+</view>
-        </block>
-        <view class="avatar-mask">点击选择</view>
-      </button>
+      <view class="avatar-btn-wrap">
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <block wx:if="{{avatarUrl}}">
+            <image class="avatar-img" src="{{avatarUrl}}" mode="aspectFill"></image>
+          </block>
+          <block wx:else>
+            <view class="avatar-placeholder">+</view>
+          </block>
+          <view class="avatar-mask">点击选择</view>
+        </button>
+      </view>
       <view class="avatar-tip">
         <view class="tip-line">点击左侧按钮</view>
         <view class="tip-line">选择微信头像</view>
@@ -48,6 +50,37 @@
         bindblur="onNicknameBlur"
         maxlength="20"
       />
+    </view>
+
+    <view class="phone-row">
+      <view class="row-label">手机</view>
+      <block wx:if="{{phoneNumber}}">
+        <view class="phone-bound">{{phoneNumber}}</view>
+        <view class="phone-badge">已绑定</view>
+      </block>
+      <block wx:else>
+        <button
+          class="phone-btn"
+          open-type="getPhoneNumber"
+          bindgetphonenumber="onGetPhoneNumber"
+        >
+          获取手机号
+        </button>
+      </block>
+    </view>
+    <view class="phone-manual-row" wx:if="{{!phoneNumber && showManualPhone}}">
+      <view class="row-label"></view>
+      <input
+        class="phone-manual-input"
+        type="text"
+        placeholder="也可手动输入手机号"
+        value="{{manualPhone}}"
+        maxlength="11"
+        bindinput="onManualPhoneInput"
+      />
+    </view>
+    <view class="phone-manual-toggle" wx:if="{{!phoneNumber}}" bindtap="toggleManualPhone">
+      {{showManualPhone ? '使用微信获取' : '手动输入手机号'}}
     </view>
 
     <view class="tips-row">

@@ -50,6 +50,19 @@ function getUserProfile(open_id) {
   })
 }
 
+// ==================== 1c. 绑定手机号 ====================
+function bindPhone(open_id, phone_code) {
+  return new Promise((resolve, reject) => {
+    app.request({
+      url: '/api/user/bind-phone',
+      method: 'POST',
+      data: { open_id, phone_code },
+      success: resolve,
+      fail: reject
+    })
+  })
+}
+
 // ==================== 2. 设备管理 ====================
 function bindDevice(open_id, device_id, room_location, extra) {
   return new Promise((resolve, reject) => {
@@ -254,6 +267,7 @@ module.exports = {
   login,
   updateProfile,
   getUserProfile,
+  bindPhone,
   bindDevice,
   unbindDevice,
   getDeviceList,
